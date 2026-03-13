@@ -1,5 +1,7 @@
 // Use
 export enum CHAIN {
+  CHAIN_GLOBAL = "chain_global", // for some adapters aggregate data across all chains is not the sum of individual chains, so we need a separate identifier for the aggregate data
+  BITCOIN_SV = "bsv",
   PACASWAP = "pacaswap",
   PEAQ = "peaq",
   CHROMIA = "chromia",
@@ -56,7 +58,8 @@ export enum CHAIN {
   KARDIA = "kardia",
   TOMBCHAIN = "tombchain",
   CONFLUX = "conflux",
-  TERRA = "terra",
+  TERRA = "terra", // terra classic
+  TERRA2 = "terra2", // terra2
   METER = "meter",
   GODWOKEN = "godwoken",
   GODWOKEN_V1 = "godwoken_v1",
@@ -136,6 +139,7 @@ export enum CHAIN {
   LINEA = "linea",
   BASE = "base",
   NEON = "neon_evm",
+  NEONY = "neony",
   OP_BNB = "op_bnb",
   HYDRADX = "hydradx",
   OSMOSIS = "osmosis",
@@ -255,8 +259,7 @@ export enum CHAIN {
   LENS = "lens",
   SSEED = "sseed",
   AO = "ao",
-  XRPL = "xrpl",
-  XRPL_EVM = "xrplevm",
+  XRPL_EVM = "xrplevm", // for XRPL chain, please using RIPPLE
   KATANA = "katana",
   SOON = "soon",
   SOON_BSC = "soon_bsc",
@@ -320,6 +323,7 @@ export enum CHAIN {
   CROSS = "cross",
   PROM = "prom",
   GRX = "grx",
+  N1 = "n1",
   ZILLIQA = "zilliqa",
   SONGBIRD = "songbird",
   MATCHAIN = "matchain",
@@ -337,4 +341,12 @@ export enum CHAIN {
   VALUECHAIN = "valuechain",
   IOTA = "iota",
   MEGAETH = "megaeth",
+  ENI = "eni",
+  SPARK = "spark",
+  CHIHUAHUA = "chihuahua",
+  DYMENSION = "dymension",
+  KUJIRA = "kujira",
+  MIGALOO = "migaloo",
+  BITROCK = "bitrock",
+  QIEV3 = "qiev3",
 }
