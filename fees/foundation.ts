@@ -1,6 +1,5 @@
 import { Adapter, ChainBlocks, FetchOptions, FetchResultFees } from "../adapters/types";
 import { CHAIN } from "../helpers/chains";
-import { METRIC } from "../helpers/metrics";
 const market_address = '0xcda72070e455bb31c7690a170224ce43623d0b6f';
 const nft_drop_market_address = '0x53f451165ba6fdbe39a134673d13948261b2334a';
 
@@ -14,16 +13,12 @@ const topic_0_withdraw_creator_revenue_from_dutch_auction = '0x5e16e96b4ba4fe46f
 // todo: track new events
 const fetch = async ({ createBalances, getLogs, }: FetchOptions) => {
   const dailyFees = createBalances();
-  const dailyRevenue = createBalances();
-  const dailySupplySideRevenue = createBalances();
   (await getLogs({
     target: market_address,
     topics: [topic_0_reserveAuction_finalized],
     eventAbi:  "event ReserveAuctionFinalized(uint256 indexed auctionId, address indexed seller, address indexed bidder, uint256 totalFees, uint256 creatorRev, uint256 sellerRev)",
   })).map((e: any) => {
-    dailyFees.addGasToken(e.totalFees, METRIC.PROTOCOL_FEES)
-    dailyFees.addGasToken(e.creatorRev, METRIC.CREATOR_FEES)
-    dailyRevenue.addGasToken(e.totalFees, METRIC.PROTOCOL_FEES)
+    dailyFees.addGasToken(e.totalFees)
   });
 
   (await getLogs({
@@ -31,9 +26,7 @@ const fetch = async ({ createBalances, getLogs, }: FetchOptions) => {
     topics: [topic_0_private_sale_finalized],
     eventAbi: "event PrivateSaleFinalized(address indexed nftContract, uint256 indexed tokenId, address indexed seller, address buyer, uint256 f8nFee, uint256 creatorFee, uint256 ownerRev, uint256 deadline)"
   })).map((e: any) => {
-    dailyFees.addGasToken(e.f8nFee, METRIC.PROTOCOL_FEES)
-    dailyFees.addGasToken(e.creatorFee, METRIC.CREATOR_FEES)
-    dailyRevenue.addGasToken(e.f8nFee, METRIC.PROTOCOL_FEES)
+    dailyFees.addGasToken(e.f8nFee)
   });
 
   (await getLogs({
@@ -41,9 +34,7 @@ const fetch = async ({ createBalances, getLogs, }: FetchOptions) => {
     topics: [topic_0_buyPrice_accepted],
     eventAbi: "event BuyPriceAccepted(address indexed nftContract, uint256 indexed tokenId, address indexed seller, address buyer, uint256 totalFees, uint256 creatorRev, uint256 sellerRev)"
   })).map((e: any) => {
-    dailyFees.addGasToken(e.totalFees, METRIC.PROTOCOL_FEES)
-    dailyFees.addGasToken(e.creatorRev, METRIC.CREATOR_FEES)
-    dailyRevenue.addGasToken(e.totalFees, METRIC.PROTOCOL_FEES)
+    dailyFees.addGasToken(e.totalFees)
   });
 
   (await getLogs({
@@ -51,9 +42,7 @@ const fetch = async ({ createBalances, getLogs, }: FetchOptions) => {
     topics: [topic_0_offer_accepted],
     eventAbi: "event OfferAccepted(address indexed nftContract, uint256 indexed tokenId, address indexed buyer, address seller, uint256 totalFees, uint256 creatorRev, uint256 sellerRev)"
   })).map((e: any) => {
-    dailyFees.addGasToken(e.totalFees, METRIC.PROTOCOL_FEES)
-    dailyFees.addGasToken(e.creatorRev, METRIC.CREATOR_FEES)
-    dailyRevenue.addGasToken(e.totalFees, METRIC.PROTOCOL_FEES)
+    dailyFees.addGasToken(e.totalFees)
   });
 
   (await getLogs({
@@ -61,9 +50,7 @@ const fetch = async ({ createBalances, getLogs, }: FetchOptions) => {
     topics: [topic_0_mint_from_fixed_price_drop],
     eventAbi: "event MintFromFixedPriceDrop (address indexed nftContract, address indexed buyer, uint256 indexed firstTokenId, uint256 count, uint256 totalFees, uint256 creatorRev)"
   })).map((e: any) => {
-    dailyFees.addGasToken(e.totalFees, METRIC.PROTOCOL_FEES)
-    dailyFees.addGasToken(e.creatorRev, METRIC.CREATOR_FEES)
-    dailyRevenue.addGasToken(e.totalFees, METRIC.PROTOCOL_FEES)
+    dailyFees.addGasToken(e.totalFees)
   });
 
   (await getLogs({
@@ -71,33 +58,23 @@ const fetch = async ({ createBalances, getLogs, }: FetchOptions) => {
     topics: [topic_0_withdraw_creator_revenue_from_dutch_auction],
     eventAbi: "event WithdrawCreatorRevenueFromDutchAuction (address indexed nftContract, uint256 clearingPrice, uint256 totalMintedCount, uint256 totalFees, uint256 creatorRev)"
   })).map((e: any) => {
-    dailyFees.addGasToken(e.totalFees, METRIC.PROTOCOL_FEES)
-    dailyFees.addGasToken(e.creatorRev, METRIC.CREATOR_FEES)
-    dailyRevenue.addGasToken(e.totalFees, METRIC.PROTOCOL_FEES)
+    dailyFees.addGasToken(e.totalFees)
   });
 
   return {
-    dailyFees, dailyRevenue
+    dailyFees, dailyRevenue: dailyFees
   }
 }
 
 
 const adapter: Adapter = {
   version: 2,
-  pullHourly: true,
-  fetch,
-  chains: [CHAIN.ETHEREUM],
-  start: '2021-02-01',
-  methodology: {
-    Fees: "Platform fees and royalties collected from sales on the Foundation marketplace.",
-    Revenue: "Platform fees from sales on the Foundation marketplace.",
-  },
-  breakdownMethodology: {
-    Fees: {
-      [METRIC.CREATOR_FEES]: "Creator royalties paid out from sales on the Foundation marketplace.",
-      [METRIC.PROTOCOL_FEES]: "Foundation platform fees collected from sales on the Foundation marketplace.",
-    }
-  },
+  adapter: {
+    [CHAIN.ETHEREUM]: {
+      fetch: fetch,
+      start: '2021-02-01',
+    },
+  }
 }
 
 export default adapter;

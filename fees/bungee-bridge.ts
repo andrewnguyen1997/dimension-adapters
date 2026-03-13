@@ -17,7 +17,6 @@ const fetch: any = async (options: FetchOptions): Promise<FetchResultFees> => {
 };
 
 const adapter: SimpleAdapter = {
-  pullHourly: true,
   version: 2,
   methodology,
   adapter: fetchBungeeChains().reduce((acc, chain) => {

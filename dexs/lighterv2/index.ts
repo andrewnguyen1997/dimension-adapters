@@ -1,6 +1,6 @@
 import { FetchOptions, SimpleAdapter } from "../../adapters/types";
 import { CHAIN } from "../../helpers/chains";
-import { httpGet, fetchURLAutoHandleRateLimit } from "../../utils/fetchURL";
+import { httpGet } from "../../utils/fetchURL";
 import PromisePool from "@supercharge/promise-pool";
 
 
@@ -28,14 +28,13 @@ const fetch = async (_1: any, _2: any, options: FetchOptions) => {
         end_timestamp: start + 1,
         count_back: 1,
       }
-      const url = `${API}/candles?${new URLSearchParams(params as any).toString()}`;
-      const data = await fetchURLAutoHandleRateLimit(url);
+      const data = await httpGet(`${API}/candles`, { params: params, });
 
       const candle = data?.c?.[0];
       if (!candle) return;
 
-        dailyVolume += Number(candle.V || 0); // already in $;
-      });
+      dailyVolume += Number(candle.V || 0); // already in $;
+    });
 
   return { dailyVolume, };
 };

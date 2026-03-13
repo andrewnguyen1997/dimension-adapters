@@ -2,7 +2,6 @@ import { Dependencies, FetchOptions, SimpleAdapter } from "../../adapters/types"
 import { CHAIN } from "../../helpers/chains";
 import ADDRESSES from '../../helpers/coreAssets.json';
 import { queryDuneSql } from "../../helpers/dune";
-import { METRIC } from "../../helpers/metrics";
 
 const TREASURY_PDA = '6pZERJjcMpNjPZ6ovnXWC6LzwkXLAYgAR1URAEs63cWC';
 
@@ -39,13 +38,13 @@ const fetch = async (_a: any, _b:any, options: FetchOptions) => {
         const amount = row.amount;
 
         // Add to total fees
-        dailyFees.add(ADDRESSES.solana.USDC, amount, METRIC.SERVICE_FEES);
+        dailyFees.add(ADDRESSES.solana.USDC, amount);
 
         // Separate between holders revenue (treasury PDA) and supply side revenue (workers)
         if (row.to_owner === TREASURY_PDA) {
-            dailyHoldersRevenue.add(ADDRESSES.solana.USDC, amount, METRIC.STAKING_REWARDS);
+            dailyHoldersRevenue.add(ADDRESSES.solana.USDC, amount);
         } else {
-            dailySupplySideRevenue.add(ADDRESSES.solana.USDC, amount, 'Worker node rewards');
+            dailySupplySideRevenue.add(ADDRESSES.solana.USDC, amount);
         }
     }
 
@@ -60,18 +59,6 @@ const fetch = async (_a: any, _b:any, options: FetchOptions) => {
     };
 };
 
-const breakdownMethodology = {
-    Fees: {
-        [METRIC.SERVICE_FEES]: 'USDC payments from users for decentralized compute services provided by the Beamable Network',
-    },
-    SupplySideRevenue: {
-        'Worker node rewards': 'USDC payments distributed to worker nodes that provide compute resources and execute tasks',
-    },
-    HoldersRevenue: {
-        [METRIC.STAKING_REWARDS]: 'USDC sent to the treasury PDA for distribution to BMB token stakers',
-    }
-};
-
 const adapter: SimpleAdapter = {
     fetch,
     chains: [CHAIN.SOLANA],
@@ -84,8 +71,7 @@ const adapter: SimpleAdapter = {
         SupplySideRevenue: "Portion of fees paid to worker nodes for providing compute services",
         HoldersRevenue: "Portion of fees for distribution to BMB stakers",
         ProtocolRevenue: "Portion of fees retained by the protocol",
-    },
-    breakdownMethodology,
+    }
 };
 
 export default adapter;

@@ -42,18 +42,13 @@ async function fetch() {
     }
   });
 
-  return { dailyFees, dailySupplySideRevenue: dailyFees, dailyRevenue: 0 }
+  return { dailyFees }
 }
 
 const adapter: SimpleAdapter = {
   fetch,
   runAtCurrTime: true,
   chains: [CHAIN.TRON],
-  methodology: {
-    Fees: 'Swap fees paid by users.',
-    Revenue: 'The protocol keeps no revenue.',
-    SupplySideRevenue: 'All the swap fees are distributed to liquidity providers.',
-  }
 };
 
 export default adapter;

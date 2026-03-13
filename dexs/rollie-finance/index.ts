@@ -1,6 +1,9 @@
 import request, { gql } from 'graphql-request';
-import {FetchOptions, SimpleAdapter} from '../../adapters/types';
+import {FetchOptions, FetchResultV2, FetchV2, SimpleAdapter} from '../../adapters/types';
 import { CHAIN } from '../../helpers/chains';
+import {
+  getUniqStartOfTodayTimestamp,
+} from '../../helpers/getUniSubgraphVolume';
 
 const ENDPOINTS: { [key: string]: string } = {
   [CHAIN.SCROLL]: 'https://api.studio.thegraph.com/query/76203/rollie-finance/0.0.3/',
@@ -23,7 +26,11 @@ const getVolume = gql`
 `;
 
 
-const getFetch = (chain: string) => async (_t: any, _b: any, options: FetchOptions) => {
+const getFetch = (chain: string): FetchV2 => async (options: FetchOptions): Promise<FetchResultV2> => {
+  const { startTimestamp} = options;
+  const dayTimestamp = getUniqStartOfTodayTimestamp(
+      new Date(startTimestamp * 1000)
+  );
   const dayIndex = Math.floor(options.startOfDay / 86400);
   const { market: response } = await request(ENDPOINTS[chain],
     getVolume, {
@@ -31,6 +38,7 @@ const getFetch = (chain: string) => async (_t: any, _b: any, options: FetchOptio
     });
 
   return {
+    timestamp: getUniqStartOfTodayTimestamp(new Date(dayTimestamp)),
     dailyVolume:
       response.marketDayDatas.length === 1
         ? (BigInt(response.marketDayDatas[0].tradeVolume) /
@@ -40,7 +48,7 @@ const getFetch = (chain: string) => async (_t: any, _b: any, options: FetchOptio
 };
 
 const adapter: SimpleAdapter = {
-  version: 1,
+  version: 2,
   adapter: {
     [CHAIN.SCROLL]: {
       fetch: getFetch(CHAIN.SCROLL),

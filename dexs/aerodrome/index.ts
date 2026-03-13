@@ -87,7 +87,7 @@ const getVolumeAndFees = async (fromBlock: number, toBlock: number, fetchOptions
     startBlock += blockStep
   }
 
-  let errorFound: any = false
+  let errorFound = false
 
   await PromisePool
     .withConcurrency(5)
@@ -130,7 +130,7 @@ const getVolumeAndFees = async (fromBlock: number, toBlock: number, fetchOptions
   return { dailyVolume, dailyFees }
 }
 
-const fetch = async (options: FetchOptions): Promise<FetchResult> => {
+const fetch = async (_t: any, _a: any, options: FetchOptions): Promise<FetchResult> => {
   const { getToBlock, getFromBlock } = options
   const [toBlock, fromBlock] = await Promise.all([getToBlock(), getFromBlock()])
   const { dailyVolume, dailyFees } = await getVolumeAndFees(fromBlock, toBlock, options);
@@ -139,8 +139,7 @@ const fetch = async (options: FetchOptions): Promise<FetchResult> => {
 }
 
 const adapters: SimpleAdapter = {
-  version: 2,
-  pullHourly: true,
+  version: 1,
   fetch,
   chains: [CHAIN.BASE],
   start: '2023-08-28',

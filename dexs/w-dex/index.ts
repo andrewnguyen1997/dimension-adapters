@@ -19,7 +19,6 @@ const fetch = async (options: FetchOptions) => {
     eventAbi: poolEvent,
     fromBlock: fromBlock,
     entireLog: true,
-    cacheInCloud: true,
   });
 
   const iface = new ethers.Interface([poolEvent]);

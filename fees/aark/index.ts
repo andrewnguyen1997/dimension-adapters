@@ -1,6 +1,5 @@
 import { FetchOptions, SimpleAdapter } from "../../adapters/types";
 import { CHAIN } from "../../helpers/chains";
-import { METRIC } from "../../helpers/metrics";
 
 const usdcAddress = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831'
 
@@ -17,8 +16,8 @@ const fetch = async (options: FetchOptions) => {
   });
 
   openData.forEach((log: any) => {
-    dailyFees.add(usdcAddress, log.executionFee, METRIC.OPEN_CLOSE_FEES);
-    dailyFees.add(usdcAddress, log.openFee, METRIC.OPEN_CLOSE_FEES);
+    dailyFees.add(usdcAddress, log.executionFee);
+    dailyFees.add(usdcAddress, log.openFee);
   });
 
   const closeData: any[] = await options.getLogs({
@@ -27,9 +26,8 @@ const fetch = async (options: FetchOptions) => {
   });
 
   closeData.forEach((log: any) => {
-    dailyFees.add(usdcAddress, log.closeFee, METRIC.OPEN_CLOSE_FEES);
+    dailyFees.add(usdcAddress, log.closeFee);
   });
-
   return { dailyFees, dailyRevenue: dailyFees, dailyProtocolRevenue: dailyFees, dailyHoldersRevenue: 0 };
 };
 
@@ -39,20 +37,12 @@ const methodology = {
   ProtocolRevenue: 'trade open/close/execution fees to protocol.',
 }
 
-const breakdownMethodology = {
-  Fees: {
-    [METRIC.OPEN_CLOSE_FEES]: 'Fees paid by traders when opening and closing perpetual positions, including execution fees, open fees, and close fees',
-  },
-}
-
 const adapter: SimpleAdapter = {
   version: 2,
-  pullHourly: true,
   fetch,
   chains: [CHAIN.ARBITRUM],
   start: '2024-11-01',
-  methodology,
-  breakdownMethodology,
+  methodology
 }
 
 export default adapter;

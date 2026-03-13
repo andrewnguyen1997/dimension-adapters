@@ -2,7 +2,7 @@ import { Dependencies, FetchOptions, SimpleAdapter } from "../adapters/types";
 import { CHAIN } from "../helpers/chains";
 import { addTokensReceived, getSolanaReceived } from "../helpers/token";
 
-const fetch = async (options: FetchOptions) => {
+const fetch = async (_a: any, _b: any, options: FetchOptions) => {
   if (options.chain === CHAIN.POLYGON) {
     const dailyFees = await addTokensReceived({
       options,
@@ -34,8 +34,7 @@ const fetch = async (options: FetchOptions) => {
 }
 
 const adapter: SimpleAdapter = {
-  version: 2,
-  pullHourly: true,
+  version: 1,
   fetch,
   dependencies: [Dependencies.ALLIUM],
   chains: [CHAIN.POLYGON, CHAIN.SOLANA],

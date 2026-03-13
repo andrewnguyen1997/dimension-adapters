@@ -15,7 +15,6 @@ const blacklists = [
 
 export default {
   version: 2,
-  pullHourly: true,
   adapter: {
     [CHAIN.ETHEREUM]: {
       fetch: async ({ getLogs, createBalances, }: FetchOptions) => {
@@ -48,8 +47,8 @@ export default {
   methodology: {
     Fees: "User pays 0.3% fees on each swap.",
     UserFees: "User pays 0.3% fees on each swap.",
-    Revenue: 'Protocol makes no revenue.',
-    ProtocolRevenue: 'Protocol makes no revenue.',
+    Revenue: 'Protocol make no revenue.',
+    ProtocolRevenue: 'Protocol make no revenue.',
     SupplySideRevenue: 'All fees are distributed to LPs.',
     HoldersRevenue: 'No revenue for UNI holders.',
   },

@@ -1,6 +1,7 @@
 import * as sdk from "@defillama/sdk";
-import { FetchOptions, SimpleAdapter } from "../../adapters/types";
-import { CHAIN } from "../../helpers/chains";
+import { FetchOptions, FetchResultV2, SimpleAdapter } from "../../adapters/types";
+import { CHAIN } from "../../helpers/chains";  
+import { getTimestampAtStartOfDayUTC } from "../../utils/date";
 import { gql, request } from "graphql-request";
 
 const endpoints: { [key: string]: string } = {
@@ -10,8 +11,8 @@ const endpoints: { [key: string]: string } = {
   [CHAIN.SOPHON]: 'https://graph1.syncswap.xyz/subgraphs/name/syncswap/syncswap-sophon',
 };
 
-async function getGraphData(_t: any, _b: any, options: FetchOptions) {
-  const dateId = Math.floor(options.startOfDay / 86400);
+async function getGraphData(options: FetchOptions): Promise<FetchResultV2> {
+  const dateId = Math.floor(getTimestampAtStartOfDayUTC(options.startOfDay) / 86400);
   const query = gql`
     {
       dayData(id: "${dateId}") {
@@ -43,10 +44,10 @@ const methodology = {
 
 const adapter: SimpleAdapter = {
   methodology,
-  version: 1,
+  version: 2,
   adapter: {
     [CHAIN.ERA]: {
-      fetch: getGraphData,
+      fetch: getGraphData,  
       start: '2024-03-06',
     },
     [CHAIN.LINEA]: {

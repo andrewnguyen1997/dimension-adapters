@@ -77,7 +77,6 @@ const adapter: SimpleAdapter = {
   methodology,
   breakdownMethodology,
   version: 2,
-  pullHourly: true,
 };
 
 export default adapter;

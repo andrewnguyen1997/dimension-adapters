@@ -57,7 +57,6 @@ async function fetch({ createBalances, getLogs }: FetchOptions) {
 
 const adapter: Adapter = {
   version: 2,
-  pullHourly: true,
   adapter: {
     [CHAIN.SONIC]: {
       fetch,

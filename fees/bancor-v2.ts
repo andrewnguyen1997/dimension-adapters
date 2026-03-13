@@ -1,6 +1,5 @@
-import { FetchOptions, SimpleAdapter } from "../adapters/types"
+import { FetchOptions } from "../adapters/types"
 import { CHAIN } from "../helpers/chains"
-import { METRIC } from "../helpers/metrics"
 import { filterPools2 } from "../helpers/uniswap"
 
 async function fetch(fetchOptions: FetchOptions) {
@@ -13,26 +12,14 @@ async function fetch(fetchOptions: FetchOptions) {
   const { pairs } = await filterPools2({ fetchOptions, pairs: pools, token0s, token1s, minUSDValue: 1e4, maxPairSize: 31 })
   const logs = await getLogs({ targets: pairs, eventAbi: 'event Conversion (address indexed sourceToken, address indexed targetToken, address indexed trader, uint256 sourceAmount, uint256 targetAmount, int256 conversionFee)' })
   const dailyFees = createBalances()
-  logs.forEach((log: any) => dailyFees.add(log.targetToken, log.conversionFee, METRIC.SWAP_FEES))
+  logs.forEach((log: any) => dailyFees.add(log.targetToken, log.conversionFee))
 
   return { dailyFees }
 }
 
-const adapter: SimpleAdapter = {
+export default {
   version: 2,
-  pullHourly: true,
-  skipBreakdownValidation: true, // because cost are not clear
-  chains: [CHAIN.ETHEREUM],
-  fetch,
-  start: '2020-06-20',
-  methodology: {
-    Fees: 'fees collected from each token swap on Bancor v2 liquidity pools, extracted from on-chain Conversion events.',
-  },
-  breakdownMethodology: {
-    Fees: {
-      [METRIC.SWAP_FEES]: 'fees collected from each token swap on Bancor v2 liquidity pools, extracted from on-chain Conversion events.',
-    },
-  },
+  adapter: {
+    [CHAIN.ETHEREUM]: { fetch, start: '2020-06-20' },
+  }
 }
-
-export default adapter;

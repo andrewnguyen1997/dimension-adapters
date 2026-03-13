@@ -2,26 +2,10 @@ import { BaseAdapter, FetchOptions, FetchV2, SimpleAdapter } from "../adapters/t
 import { CHAIN } from "../helpers/chains";
 
 const methodology = {
-  Fees: "Total borrow interest paid by borrowers plus AMM swap fees from LLAMMA liquidation AMMs.",
-  Revenue: "AMM admin fees collected by Curve DAO.",
-  SupplySideRevenue: "Borrow interest distributed to lenders plus AMM swap fees distributed to LPs.",
-  ProtocolRevenue: "AMM admin fees collected by Curve DAO.",
-};
-
-const breakdownMethodology = {
-  Fees: {
-    'Borrow Interest': 'Interest paid by borrowers on their loans, accrued daily based on utilization rate',
-    'AMM Swap Fees': 'Fees from token swaps in LLAMMA (Lending-Liquidating AMM Algorithm) pools used for soft liquidations',
-  },
-  Revenue: {
-    'AMM Admin Fees': 'Admin share of AMM swap fees collected by Curve DAO',
-  },
-  ProtocolRevenue: {
-    'AMM Admin Fees': 'Admin share of AMM swap fees collected by Curve DAO',
-  },
-  SupplySideRevenue: {
-    'Lender & LP Revenue': 'Borrow interest paid to lenders plus AMM swap fees earned by liquidity providers (net of admin fees)',
-  },
+  Fees: "Total borrow interest paid by borrowers.",
+  Revenue: "Total interests are distributed to Curve DAO.",
+  SupplySideRevenue: "Total interests are distributed to suppliers/lenders.",
+  ProtocolRevenue: "Total interests are distributed to Curve DAO.",
 };
 
 interface OneWayLendingFactory {
@@ -155,7 +139,7 @@ const fetch: FetchV2 = async (options: FetchOptions) => {
 
     if (pricePerShareBefore && pricePerShareAfter && totalAssets) {
       const interestPaid = (Number(pricePerShareAfter) - Number(pricePerShareBefore)) * Number(totalAssets) / 1e18
-      dailyFees.add(llamaVault.borrowed_token, interestPaid, 'Borrow Interest')
+      dailyFees.add(llamaVault.borrowed_token, interestPaid)
     }
 
     for (const event of events) {
@@ -164,15 +148,13 @@ const fetch: FetchV2 = async (options: FetchOptions) => {
       const ammAdminFee = ammFee * llamaVault.ammAdminFee
 
       dailyVolume.add(llamaVault.ammTokens[Number(event.sold_id)], volume)
-      dailyFees.add(llamaVault.ammTokens[Number(event.sold_id)], ammFee, 'AMM Swap Fees')
-      dailyRevenue.add(llamaVault.ammTokens[Number(event.sold_id)], ammAdminFee, 'AMM Admin Fees')
+      dailyFees.add(llamaVault.ammTokens[Number(event.sold_id)], ammFee)
+      dailyRevenue.add(llamaVault.ammTokens[Number(event.sold_id)], ammAdminFee)
     }
   }
 
-  const dailySupplySideRevenue = options.createBalances();
-  const tempBalance = dailyFees.clone();
-  tempBalance.subtract(dailyRevenue);
-  dailySupplySideRevenue.addBalances(tempBalance, 'Lender & LP Revenue');
+  const dailySupplySideRevenue = dailyFees.clone()
+  dailySupplySideRevenue.subtract(dailyRevenue)
 
   return {
     dailyVolume,
@@ -185,9 +167,7 @@ const fetch: FetchV2 = async (options: FetchOptions) => {
 
 const adapter: SimpleAdapter = {
   version: 2,
-  pullHourly: true,
   methodology,
-  breakdownMethodology,
   adapter: {},
 };
 

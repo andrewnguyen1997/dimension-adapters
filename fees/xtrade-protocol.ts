@@ -4,7 +4,7 @@ import { getSolanaReceived } from "../helpers/token";
 
 const wallets = ['9QZgt11ev2g2J1fBUEfYbsjNUiDG9r3LTKwPhkNhuHzY']
 
-const fetch = async (options: FetchOptions) => {
+const fetch = async (_a: any, _b: any, options: FetchOptions) => {
   const dailyFees = await getSolanaReceived({
     blacklists: wallets,
     options,
@@ -19,8 +19,7 @@ const fetch = async (options: FetchOptions) => {
 };
 
 const adapter: SimpleAdapter = {
-  version: 2,
-  pullHourly: true,
+  version: 1,
   dependencies: [Dependencies.ALLIUM],
   fetch,
   chains: [CHAIN.SOLANA],

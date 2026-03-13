@@ -33,7 +33,7 @@ const formatAmount = (
   return amountStr;
 };
 const info: { [key: string]: any } = {
-  [CHAIN.BSC]: {
+  bsc: {
     subgraph:
       sdk.graph.modifyEndpoint('DdLtKxzUi6ExMok8dNWh9B2HN5WeTWcQsfSSZMKH1trQ'),
   },

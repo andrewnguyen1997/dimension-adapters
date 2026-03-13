@@ -3,7 +3,6 @@ import { fraxlendExport } from "../../helpers/fraxlend";
 
 // const adapter: SimpleAdapter = {
 //   version: 2,
-//   pullHourly: true,
 //   adapter: {
 //     ...hyIsolatedExport({
 //       [CHAIN.HYPERLIQUID]: {

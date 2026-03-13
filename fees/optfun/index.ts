@@ -111,7 +111,6 @@ const adapter: Adapter = {
     ProtocolRevenue: "100% of fees are retained by the protocol",
   },
   version: 2,
-  pullHourly: true,
   adapter: {
     [CHAIN.HYPERLIQUID]: {
       fetch,

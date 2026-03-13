@@ -27,7 +27,6 @@ const fetchVolume = async (options: FetchOptions) => {
 
 const adapter: SimpleAdapter = {
   version: 2,
-  pullHourly: true,
   adapter: {
     [CHAIN.SONIC]: {
       fetch: fetchVolume

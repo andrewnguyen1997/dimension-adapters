@@ -56,7 +56,6 @@ const fetch = async (options: FetchOptions) => {
 
 const adapter: SimpleAdapter = {
   version: 2,
-  pullHourly: true,
   methodology: {
     Fees: "Includes all protocol fees from Odyssey.",
     Revenue: "All protocol revenue equals fees.",

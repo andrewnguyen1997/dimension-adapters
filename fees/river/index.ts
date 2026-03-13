@@ -156,7 +156,6 @@ const fetch = async (options: FetchOptions): Promise<FetchResultV2> => {
 
 export default {
     version: 2,
-    pullHourly: true,
     adapter: {
         [CHAIN.ARBITRUM]: {
             fetch,

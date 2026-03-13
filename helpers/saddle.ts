@@ -1,5 +1,4 @@
 import { BaseAdapter, FetchOptions, IJSON, SimpleAdapter } from "../adapters/types";
-import { METRIC } from "./metrics";
 
 const abi = {
   "TokenSwap": "event TokenSwap(address indexed buyer, uint256 tokensSold, uint256 tokensBought, uint128 soldId, uint128 boughtId)",
@@ -17,7 +16,7 @@ export async function getSaddleVolume(options: FetchOptions, pools: string[]) {
   }
   const dailyVolume = createBalances()
   const dailyFees = createBalances()
-  const dailyRevenue = createBalances()
+  const dailyRevenue = createBalances() 
   const dailySupplySideRevenue = createBalances()
   const logs = await getLogs({  targets: pools, eventAbi: abi.TokenSwap, flatten: false, });
   logs.forEach((log, i) => {
@@ -28,9 +27,9 @@ export async function getSaddleVolume(options: FetchOptions, pools: string[]) {
       const feeAmount = Number(_log.tokensBought) * fees
       const protocolFeeAmount = feeAmount * protocolFee
       const lpRevenue = feeAmount - protocolFeeAmount
-      dailyFees.add(tokens[_log.boughtId][i], feeAmount, METRIC.SWAP_FEES)
-      dailyRevenue.add(tokens[_log.boughtId][i], protocolFeeAmount, METRIC.PROTOCOL_FEES)
-      dailySupplySideRevenue.add(tokens[_log.boughtId][i], lpRevenue, METRIC.LP_FEES)
+      dailyFees.add(tokens[_log.boughtId][i], feeAmount)
+      dailyRevenue.add(tokens[_log.boughtId][i], protocolFeeAmount)
+      dailySupplySideRevenue.add(tokens[_log.boughtId][i], lpRevenue)
     })
   })
   return { dailyVolume, dailyFees, dailyRevenue, dailySupplySideRevenue }

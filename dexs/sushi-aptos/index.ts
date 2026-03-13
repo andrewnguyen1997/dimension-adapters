@@ -84,7 +84,6 @@ const getSwapEvent = async (pool: any, fromTimestamp: number, toTimestamp: numbe
 const toUnixTime = (timestamp: string) => Number((Number(timestamp) / 1e6).toString().split('.')[0])
 
 const adapter: SimpleAdapter = {
-  pullHourly: true,
   adapter: {
     [CHAIN.APTOS]: {
       fetch: fetchVolume,

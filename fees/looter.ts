@@ -17,7 +17,7 @@ const contract: any = {
 }
 
 
-const fetch = async (options: FetchOptions) => {
+const fetch = async (_a: any, _b: any, options: FetchOptions) => {
   const dailyFees = options.createBalances();
   if (options.chain === CHAIN.SOLANA) {
     await getSolanaReceived({ options, target: contract[options.chain], balances: dailyFees })
@@ -35,8 +35,7 @@ const methodology = {
 }
 
 const adapter: SimpleAdapter = {
-  version: 2,
-  pullHourly: true,
+  version: 1,
   methodology,
   dependencies: [Dependencies.ALLIUM],
   fetch,

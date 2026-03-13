@@ -33,10 +33,9 @@ const fetch = async (options: FetchOptions) => {
     target: savUsd,
   })
   daily_rewards.forEach((log) => {
-    const protocolCut = Number(log.amount) / 9
-    dailyFees.add(avUsd, Number(log.amount) + protocolCut, METRIC.ASSETS_YIELDS);
+    dailyFees.add(avUsd, log.amount, METRIC.ASSETS_YIELDS);
     dailySupplySideRevenue.add(avUsd, log.amount, METRIC.ASSETS_YIELDS);
-    dailyRevenue.add(avUsd, protocolCut, METRIC.PERFORMANCE_FEES)
+    dailyRevenue.add(avUsd, Number(log.amount) / 9, METRIC.PERFORMANCE_FEES)
   });
 
   return {
@@ -49,7 +48,6 @@ const fetch = async (options: FetchOptions) => {
 
 const adapters: SimpleAdapter = {
   version: 2,
-  pullHourly: true,
   fetch,
   chains: [CHAIN.AVAX],
   start: '2024-11-15',

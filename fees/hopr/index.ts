@@ -63,7 +63,6 @@ const fetch = async ({ toTimestamp, getLogs, createBalances, }: FetchOptions) =>
 
 const adapter: Adapter = {
   version: 2,
-  pullHourly: true,
   methodology,
   adapter: {
     [CHAIN.XDAI]: {

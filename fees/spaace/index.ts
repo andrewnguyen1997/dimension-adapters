@@ -8,9 +8,9 @@ const event_order_fulfilled = "event OrderFulfilled(bytes32 orderHash, address i
 
 
 export const config: any = {
-  [CHAIN.ETHEREUM]: {
+  ethereum: {
     fees_collectors: [...defaltFeeCollectors]
-  },
+  },  
 }
 
 export const fetch = async ({ createBalances, getLogs, chain, }: FetchOptions) => {
@@ -46,7 +46,6 @@ const methodology = {
 
 const adapter: SimpleAdapter = {
   version: 2,
-  pullHourly: true,
   fetch,
   chains: [CHAIN.ETHEREUM],
   start: '2023-07-27',

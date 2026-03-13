@@ -123,7 +123,6 @@ const methodology = {
 
 const adapter: SimpleAdapter = {
   version: 2,
-  pullHourly: true,
   dependencies: [Dependencies.ALLIUM],
   adapter: {
     [CHAIN.ETHEREUM]: { fetch, start: '2024-03-01', },

@@ -37,7 +37,6 @@ async function getBasinVolume(options: FetchOptions, configs: BasinExchangeExpor
 export function getBasinAdapter(configs: BasinExchangeExportConfig): SimpleAdapter {
   const adapter: SimpleAdapter = {
     version: 2,
-    pullHourly: true,
     methodology: { Volume: 'Total swap volume from all Well pools on exchange.' },
     adapter: {},
   };

@@ -33,7 +33,6 @@ const fetch = async ({ createBalances, getLogs, api }: FetchOptions) => {
 
 const adapter: SimpleAdapter = {
   version: 2,
-  pullHourly: true,
   adapter: {
     [CHAIN.FANTOM]: {
       fetch,

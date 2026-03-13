@@ -1,13 +1,13 @@
-import type { FetchOptions, FetchV2, SimpleAdapter } from "../../adapters/types";
+import type { Fetch, SimpleAdapter } from "../../adapters/types";
 import { CHAIN } from "../../helpers/chains";
 import { httpGet } from "../../utils/fetchURL";
 
 type FutureContracts = {
   id: number;
   symbol: string;
-  volume: string | null;
-  low: string | null;
-  high: string | null;
+  volume24h: string | null;
+  low24h: string | null;
+  high24h: string | null;
 };
 
 type ChainVolume = {
@@ -21,9 +21,9 @@ interface Response {
   chain_volumes: ChainVolume[];
 }
 
-const fetch: FetchV2 = async (options: FetchOptions) => {
+const fetch: Fetch = async (timestamp: number, chainBlocks, options) => {
   const response: Response = await httpGet(
-    `https://data-api.hibachi.xyz/exchange/stats/volumes?start_timestamp=${options.fromTimestamp}&end_timestamp=${options.toTimestamp}`
+    "https://data-api.hibachi.xyz/exchange/stats/volumes"
   );
 
   const chain_volume =
@@ -31,16 +31,26 @@ const fetch: FetchV2 = async (options: FetchOptions) => {
       (d) => d.chain_name.toLowerCase() === options.chain.toLowerCase()
     )?.volume ?? 0;
 
-  return {
-    dailyVolume: chain_volume
+  const output = {
+    dailyVolume: chain_volume.toString(),
+    timestamp: new Date(Math.floor(Number(response.timestamp))).getTime() / 1000,
   };
+
+  return output;
 };
 
 const adapter: SimpleAdapter = {
-  version: 2,
-  fetch,
-  start: '2025-06-01',
-  chains: [CHAIN.ARBITRUM, CHAIN.BASE],
+  version: 1,
+  adapter: {
+    [CHAIN.ARBITRUM]: {
+      fetch,
+      start: "2025-06-01",
+    },
+    [CHAIN.BASE]: {
+      fetch,
+      start: "2025-06-01",
+    },
+  },
 };
 
 export default adapter;

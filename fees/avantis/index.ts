@@ -1,7 +1,7 @@
 import { CHAIN } from "../../helpers/chains";
-import { SimpleAdapter, FetchResultFees, FetchOptions } from "../../adapters/types";
+import { SimpleAdapter, FetchResultFees } from "../../adapters/types";
 import fetchURL from "../../utils/fetchURL";
-import { METRIC } from "../../helpers/metrics";
+import { getTimestampAtStartOfDayUTC } from "../../utils/date";
 
 interface IData {
 	success: boolean;
@@ -18,25 +18,11 @@ interface IData {
 
 const API_URL = "https://api.avantisfi.com/v1";
 
-const methodology = {
-	Fees: "Avantis collects fees from perpetual trading activities including position opening fees, position closing fees, and rollover fees for maintaining open positions",
-	UserFees: "All fees are paid directly by traders",
-	SupplySideRevenue: "All fees are distributed to LPs",
-	Revenue: "No revenue for now",
-};
+const fetch =async (timestamp: number): Promise<FetchResultFees> => {
+	const todaysTimestamp = getTimestampAtStartOfDayUTC(timestamp);
 
-const breakdownMethodology = {
-	Fees: {
-		[METRIC.TRADING_FEES]: "Fees charged when traders open/close perpetual positions + rollover fees for maintaining open positions",
-	},
-	SupplySideRevenue: {
-		'Trading Fees To LPs': "All trading fees are distributed to LPs.",
-	},
-};
-
-const fetch =async (_a: number, _b:any, options: FetchOptions): Promise<FetchResultFees> => {
-
-	const date = new Date(options.startOfDay * 1000);
+	// Convert timestamp to Date object and format to YYYY-MM-DD in UTC
+	const date = new Date(todaysTimestamp * 1000);
 	const dateStr = date.toISOString().split("T")[0];
 
 	// Find difference in days between today and the timestamp
@@ -48,29 +34,22 @@ const fetch =async (_a: number, _b:any, options: FetchOptions): Promise<FetchRes
 	const value: IData = await fetchURL(url);
 	if (!value.success) throw new Error("Failed to fetch data");
 
-  const df = value.history.find((d) => d.date === dateStr)?.totalFees;
-	
-  const dailyFees = options.createBalances();
-  const dailySupplySideRevenue = options.createBalances();
-  
-	dailyFees.addUSDValue(df, METRIC.TRADING_FEES);
-	dailySupplySideRevenue.addUSDValue(df, 'Trading Fees To LPs');
+	const dailyFee = value.history.find((d) => d.date === dateStr)?.totalFees;
 
 	return {
-		dailyFees,
-    dailyUserFees: dailyFees,
-    dailyRevenue: 0,
-		dailySupplySideRevenue,
+		dailyUserFees: dailyFee,
+		dailyFees: dailyFee,
 	};
 };
 
 const adapter: SimpleAdapter = {
-	version: 1,
-	fetch,
-	chains: [CHAIN.BASE],
-	start: '2024-01-27',
-	methodology,
-	breakdownMethodology,
+	adapter: {
+		[CHAIN.BASE]: {
+			fetch,
+			start: '2024-01-27',
+		},
+	},
+	version: 1
 };
 
 export default adapter;

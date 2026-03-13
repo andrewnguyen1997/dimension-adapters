@@ -1,8 +1,7 @@
 import ADDRESSES from '../helpers/coreAssets.json'
 import { Adapter, FetchOptions, FetchResultV2 } from "../adapters/types";
 import { CHAIN } from "../helpers/chains";
-import { getEulerVaultFee } from "../helpers/curators";
-import { METRIC } from '../helpers/metrics';
+import { getEulerVaultFee } from "../helpers/curators/index";
 
 /**
  * 
@@ -118,7 +117,6 @@ async function fetch(options: FetchOptions): Promise<FetchResultV2> {
   const dailyProtocolRevenue = options.createBalances()
   const dailyHoldersRevenue = options.createBalances()
   const dailyRevenue = options.createBalances()
-  const dailySupplySideRevenue = options.createBalances()
 
   const redeemEvents: Array<any> = await options.getLogs({
     targets: [DaoCollateral,USD0aDaoCollateral, EUR0DaoCollateral, ETH0DaoCollateral],
@@ -155,51 +153,49 @@ async function fetch(options: FetchOptions): Promise<FetchResultV2> {
   })
 
   for (const event of redeemEvents) {
-    dailyFees.add(USD0, Number(event.stableFeeAmount), METRIC.MINT_REDEEM_FEES)
-    dailyProtocolRevenue.add(USD0, Number(event.stableFeeAmount), METRIC.MINT_REDEEM_FEES)
+    dailyFees.add(USD0, Number(event.stableFeeAmount))
+    dailyProtocolRevenue.add(USD0, Number(event.stableFeeAmount))
   }
   
   for (const event of feeSweptEvents) {
-    dailyFees.add(USUAL, Number(event.amount), "Early Unstake penalty")
+    dailyFees.add(USUAL, Number(event.amount))
 
     // https://docs.usual.money/usual-products/usd0-liquid-staking-token/usd0++-early-redemption-mechanism#how-does-it-work
     //67% of the fees are distributed to USUALx,Usual* stakers
     //33% of the fees are burnt
-    dailyHoldersRevenue.add(USUAL, Number(event.amount), "Early Unstake penalty")
+    dailyHoldersRevenue.add(USUAL, Number(event.amount))
   }
 
   for (const event of harvestManagementFeeEvents) {
-    dailyFees.add(SUSDS, Number(event.sharesMinted), METRIC.MANAGEMENT_FEES)
-    dailyProtocolRevenue.add(SUSDS, Number(event.sharesMinted), METRIC.MANAGEMENT_FEES)
-  }
+    dailyFees.add(SUSDS, Number(event.sharesMinted))
+    dailyProtocolRevenue.add(SUSDS, Number(event.sharesMinted))
+  } 
 
   for (const event of harvestUSD0aEvents) {
-    dailyFees.add(USD0a, Number(event.amount), METRIC.MANAGEMENT_FEES)
-    dailyProtocolRevenue.add(USD0a, Number(event.amount), METRIC.MANAGEMENT_FEES)
+    dailyFees.add(USD0a, Number(event.amount))
+    dailyProtocolRevenue.add(USD0a, Number(event.amount))
   }
 
   for (const event of usd0ppUnlockedFloorPriceEvents) {
     const feeAmount = Number(event.usd0ppAmount) - Number(event.usd0Amount)
 
-    dailyFees.add(USD0, feeAmount, "Early Unstake penalty")
-    dailyProtocolRevenue.add(USD0, feeAmount, "Early Unstake penalty")
+    dailyFees.add(USD0, feeAmount)
+    dailyProtocolRevenue.add(USD0, feeAmount)
   }
-
-  dailyRevenue.add(dailyHoldersRevenue)
 
   for (const event of sUsd0DistributedEvents) {
     // not added to dailyFees because USD0 is minted from RWA yield
-    dailyHoldersRevenue.add(USD0, Number(event.amount), "RWA Yield")
+    dailyHoldersRevenue.add(USD0, Number(event.amount))
   }
 
   for (const event of usd0aDistributedEvents) {
     // not added to dailyFees because USD0 is minted from RWA yield
-    dailyHoldersRevenue.add(USD0, Number(event.amount), "RWA Yield")
+    dailyHoldersRevenue.add(USD0, Number(event.amount))
   }
 
   for (const event of UsualxDistributedEvents) {
     // not added to dailyFees because USD0 is minted from RWA yield
-    dailyHoldersRevenue.add(USD0, Number(event.amount), "RWA Yield")
+    dailyHoldersRevenue.add(USD0, Number(event.amount))
   }
 
   // get fees earned by USYC
@@ -288,8 +284,8 @@ async function fetch(options: FetchOptions): Promise<FetchResultV2> {
 
   const totalRwaYield = usycYield + mYield + eutblYieldInUsd + wstEthYieldInUsd
   
-  dailyFees.addUSDValue(totalRwaYield, "RWA Yield")
-  dailyProtocolRevenue.addUSDValue(totalRwaYield, "RWA Yield")
+  dailyFees.addUSDValue(totalRwaYield)
+  dailyProtocolRevenue.addUSDValue(totalRwaYield)
 
 
   // Uniswap Fee earned through liquidity deployment
@@ -314,28 +310,28 @@ async function fetch(options: FetchOptions): Promise<FetchResultV2> {
         position.token0 &&
         position.token1
       ) {
-        dailyFees.add( position.token0, Number(event.amount0), METRIC.LP_FEES)
-        dailyFees.add( position.token1, Number(event.amount1), METRIC.LP_FEES)
-        dailyProtocolRevenue.add( position.token0, Number(event.amount0), METRIC.LP_FEES)
-        dailyProtocolRevenue.add( position.token1, Number(event.amount1), METRIC.LP_FEES)
+        dailyFees.add( position.token0, Number(event.amount0))
+        dailyFees.add( position.token1, Number(event.amount1))
+        dailyProtocolRevenue.add( position.token0, Number(event.amount0))
+        dailyProtocolRevenue.add( position.token1, Number(event.amount1))
       }
-   }
+ 
+  }
 
-  await getEulerVaultFee(options, { dailyFees, dailyRevenue, dailySupplySideRevenue }, EULER_VAULTS)
+  await getEulerVaultFee(options, { dailyFees, dailyRevenue }, EULER_VAULTS)
   dailyRevenue.add(dailyProtocolRevenue)
+  dailyRevenue.add(dailyHoldersRevenue)
 
   return {
     dailyFees,
     dailyRevenue,
     dailyProtocolRevenue,
     dailyHoldersRevenue,
-    dailySupplySideRevenue
   }
 }
 
 const adapter: Adapter = {
   version: 2,
-  pullHourly: true,
   adapter: {
     [CHAIN.ETHEREUM]: {
       fetch: fetch,
@@ -343,27 +339,6 @@ const adapter: Adapter = {
     },
   },
   methodology,
-  breakdownMethodology: {
-    Fees: {
-      [METRIC.MANAGEMENT_FEES]: 'Usual deployed vaults to deposit USD0++ and distribute USUAL to depositors when user withdraws, a fee is applied and a management fee is harvested on the vault.',
-      [METRIC.MINT_REDEEM_FEES]: 'Redemption fees on USD0 stablecoins',
-      "Early Unstake penalty": 'Includes fees for early unstake of USD0++ at floor price and the USUAL tokens committed for early unstake',
-      "RWA Yield": "Usual earns fees from locked RWA assets",
-      [METRIC.LP_FEES]: "Uniswap fees earned through liquidity deployment"
-    },
-    Revenue: {
-      [METRIC.MANAGEMENT_FEES]: 'Usual deployed vaults to deposit USD0++ and distribute USUAL to depositors when user withdraws, a fee is applied and a management fee is harvested on the vault.',
-      [METRIC.MINT_REDEEM_FEES]: 'Redemption fees on USD0 stablecoins',
-      "RWA Yield": "Usual earns fees from locked RWA assets",
-      "Early Unstake penalty": 'Includes fees for early unstake of USD0++ at floor price and the USUAL tokens committed for early unstake',
-      [METRIC.LP_FEES]: "Uniswap fees earned through liquidity deployment"
-
-    },
-    HoldersRevenue: {
-      "RWA Yield": "USD0 distributed to sUSD0, USD0a stakers and USUALx lockers from RWA treasury yields",
-      "Early Unstake penalty": '33% of the USUAL tokens committed for early unstake are burnt and 67% are allocated to USUALx and USUAL',
-    },
-  },
 };
 
 export default adapter;

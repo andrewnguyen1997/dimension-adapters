@@ -4,7 +4,6 @@ import { CHAIN } from "../helpers/chains";
 const methodology = {
   Fees: 'Total fees paid by delegations buyers.',
   SupplySideRevenue: 'Total fees are distributed to token delegators.',
-  Revenue: 'Commission fees earned by Loobyfi.',
   ProtocolRevenue: 'Commission fees earned by Loobyfi.',
 }
 
@@ -46,13 +45,12 @@ const fetch = async (options: FetchOptions): Promise<FetchResultFees> => {
     dailySupplySideRevenue.addGasToken(Number(event.netRevenue))
   }
 
-  const dailyRevenue = dailyFees.clone()
-  dailyRevenue.subtract(dailySupplySideRevenue)
+  const dailyProtocolRevenue = dailyFees.clone()
+  dailyProtocolRevenue.subtract(dailySupplySideRevenue)
 
   return {
     dailyFees,
-    dailyRevenue,
-    dailyProtocolRevenue: dailyRevenue,
+    dailyProtocolRevenue,
     dailySupplySideRevenue,
   };
 };
@@ -61,7 +59,6 @@ const adapter: Adapter = {
   methodology,
   fetch,
   version: 2,
-  pullHourly: true,
   adapter: {
     [CHAIN.ARBITRUM]: { start: '2024-01-26', },
     [CHAIN.ERA]: { start: '2024-06-27', },

@@ -1,5 +1,5 @@
+// import { Chain } from "../../adapters/types";
 import { SimpleAdapter } from "../../adapters/types";
-import { CHAIN } from "../../helpers/chains";
 import fetchURL from "../../utils/fetchURL";
 import { AnalyticsData, Position, StrategyType } from "./interfaces";
 
@@ -15,7 +15,7 @@ export async function getEarliestAvailableTimestamp() {
 
 const adapter: SimpleAdapter = {
   adapter: {
-    [CHAIN.ARBITRUM]: {
+    arbitrum: {
       runAtCurrTime: true,
       fetch: fetchArbitrumAnalyticsData,
       start: getEarliestAvailableTimestamp,

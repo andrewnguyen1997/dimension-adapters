@@ -28,12 +28,11 @@ const methodology = {
     "Every trade incurs a 1% fee collected in WBNB and sent to the TaxManager.",
   Revenue:
     "45% of fees (WBNB inflows) are distributed to the Luna Treasury as protocol revenue.",
-  SupplySideRevenue: "5% of fees are distributed to the meme coin creator.",
+  CreatorRevenue: "5% of fees are distributed to the meme coin creator.",
 };
 
 const adapter: SimpleAdapter = {
   version: 2,
-  pullHourly: true,
   fetch,
   chains: [CHAIN.BSC],
   start: "2024-07-01",

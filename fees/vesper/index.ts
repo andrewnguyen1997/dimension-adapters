@@ -61,7 +61,6 @@ const adapter: SimpleAdapter = {
     HoldersRevenue: "Tracks VSP distributed to esVSP lockers.",
   },
   version: 2,
-  pullHourly: true,
   adapter: {
     [CHAIN.ETHEREUM]: {
       fetch: fetch(CHAIN.ETHEREUM),

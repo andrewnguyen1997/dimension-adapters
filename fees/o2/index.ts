@@ -1,31 +1,35 @@
-import { FetchOptions, SimpleAdapter } from "../../adapters/types";
+import { Dependencies, FetchOptions, SimpleAdapter } from "../../adapters/types";
 import { CHAIN } from "../../helpers/chains";
+import { queryDuneSql } from "../../helpers/dune";
 import fetchURL from "../../utils/fetchURL";
 
-type FeeResult = {
-  base_asset_id?: string;
-  base_fees?: string | number;
-  quote_asset_id?: string;
-  quote_fees?: string | number;
-};
+const FeeRecipient = "0x18af30EfA58A70042013192bBDdF8A21221004b44cC1cbA1A0038cE524aAa2EE";
 
-const fetch = async (options: FetchOptions) => {
+const fetch = async (_a:any, _b:any, options: FetchOptions) => {
   const dailyFees = options.createBalances();
-  const url = `https://api.o2.app/defillama/v1/fees?from=${options.startTimestamp}&to=${options.endTimestamp}`;
-  const feeResults = await fetchURL(url);
 
-  if (!Array.isArray(feeResults)) {
-    throw new Error("Unexpected response from O2 fees API: expected an array");
+  const markets = await fetchURL(`https://api.o2.app/v1/markets`);
+  const orderbookContractIds = markets.markets.map(
+    (market: any) => market.contract_id,
+  );
+
+  const query = `
+    SELECT
+      SUM(CAST(amount AS DECIMAL(38,0))) as amount,
+      asset_id
+    FROM fuel.receipts
+    WHERE contract_id IN (${orderbookContractIds})
+      AND to = ${FeeRecipient}
+      AND TIME_RANGE
+    GROUP BY asset_id
+  `;
+  const data = await queryDuneSql(options, query);
+  console.log(data);
+  if (data?.length > 0) {
+    data.forEach((row) => {
+      dailyFees.add(row.asset_id, row.amount);
+    });
   }
-
-  feeResults.forEach((row: FeeResult) => {
-    if (row.base_asset_id && row.base_fees && row.base_fees !== "0") {
-      dailyFees.add(row.base_asset_id, row.base_fees);
-    }
-    if (row.quote_asset_id && row.quote_fees && row.quote_fees !== "0") {
-      dailyFees.add(row.quote_asset_id, row.quote_fees);
-    }
-  });
 
   return {
     dailyFees,
@@ -42,10 +46,12 @@ const methodology = {
 };
 
 const adapter: SimpleAdapter = {
-  version: 2,
+  version: 1,
   fetch,
   chains: [CHAIN.FUEL],
   start: "2025-12-01",
+  dependencies: [Dependencies.DUNE],
+  isExpensiveAdapter: true,
   methodology,
 };
 

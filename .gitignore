@@ -9,7 +9,3 @@ test.js
 
 cli/dimensionModules.json
 wash/
-*.log
-
-.claude
-CLAUDE.md

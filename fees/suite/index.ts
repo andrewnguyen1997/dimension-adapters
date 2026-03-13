@@ -42,7 +42,7 @@ const adapter: Adapter = {
   methodology: {
     Fees: 'Total fees paid from bot trades',
     Revenue: 'Total fees paid from bot trades',
-    ProtocolRevenue: '50% of the total fees goes to the treasury',
+    ProtocolReveneue: '50% of the total fees goes to the treasury',
     HoldersRevenue: '50% of the total fees goes to the token holders (doesn\'t include other revenue sources)'
   }
 };

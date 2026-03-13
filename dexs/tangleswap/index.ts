@@ -7,7 +7,6 @@ import { addOneToken } from "../../helpers/prices";
 
 const adapter: Adapter = {
   version: 2,
-  pullHourly: true,
   adapter: {
     [CHAIN.SHIMMER_EVM]: {
       fetch,

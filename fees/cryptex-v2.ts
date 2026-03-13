@@ -1,6 +1,5 @@
 import { Adapter, FetchOptions } from "../adapters/types";
 import { CHAIN } from "../helpers/chains";
-import { METRIC } from "../helpers/metrics";
 
 const products: string[] = [
   '0x4243b34374cfb0a12f184b92f52035d03d4f7056', // TCAP
@@ -26,7 +25,6 @@ type IPrice = {
 
 const fetch = async ({ getLogs, api, createBalances }: FetchOptions) => {
   const dailyFees = createBalances();
-
   for (const product of products) {
     const make_closed_topic0_logs = await getLogs({ target: product, eventAbi: make_closed_event })
     const make_opened_topic0_logs = await getLogs({ target: product, eventAbi: make_opened_event })
@@ -60,13 +58,13 @@ const fetch = async ({ getLogs, api, createBalances }: FetchOptions) => {
     maker_logs.forEach((value: any) => {
       const price = _prices[value!.version]
       const fees = makerFees[0].toString()
-      dailyFees.addUSDValue(value.amount.toString() * price * fees / 1e36, METRIC.TRADING_FEES)
+      dailyFees.addUSDValue(value.amount.toString() * price * fees / 1e36)
     })
 
     taker_logs.forEach((value: any) => {
       const price = _prices[value!.version]
       const fees = takerFees[0].toString()
-      dailyFees.addUSDValue(value.amount.toString() * price * fees / 1e36, METRIC.TRADING_FEES)
+      dailyFees.addUSDValue(value.amount.toString() * price * fees / 1e36)
     })
   }
 
@@ -75,15 +73,12 @@ const fetch = async ({ getLogs, api, createBalances }: FetchOptions) => {
 
 const adapter: Adapter = {
   version: 2,
-  pullHourly: true,
-  fetch,
-  chains: [CHAIN.ARBITRUM],
-  start: '2023-05-20',
-  breakdownMethodology: {
-    Fees: {
-      [METRIC.TRADING_FEES]: 'Fees charged on maker and taker orders when opening or closing TCAP perpetual product contracts, calculated as position size multiplied by the oracle price and the maker/taker fee rate.',
-    },
-  },
+  adapter: {
+    [CHAIN.ARBITRUM]: {
+      fetch: fetch,
+      start: '2023-05-20'
+    }
+  }
 }
 
 export default adapter;

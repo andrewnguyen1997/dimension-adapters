@@ -1,9 +1,7 @@
-import ADDRESSES from "../../helpers/coreAssets.json";
+import ADDRESSES from '../../helpers/coreAssets.json'
 import { ethers } from "ethers";
 import { Adapter, FetchOptions, FetchResultV2 } from "../../adapters/types";
-import { CHAIN } from "../../helpers/chains";
 import { Balances } from "@defillama/sdk";
-import { METRIC } from '../../helpers/metrics';
 
 const VOTER = "0xd7ea36ECA1cA3E73bC262A6D05DB01E60AE4AD47";
 const BERO = "0x7838CEc5B11298Ff6a9513Fa385621B765C74174";
@@ -33,13 +31,13 @@ async function addBondigCurveFees(options: FetchOptions, totalFees: Balances) {
   buyLogs.forEach((log) => {
     const amount = log.amountBase;
     const fee = (amount * SWAP_FEE) / DIVISOR;
-    totalFees.add(HONEY, fee, METRIC.TRADING_FEES);
+    totalFees.add(HONEY, fee);
   });
 
   sellLogs.forEach((log) => {
     const amount = log.amountToken;
     const fee = (amount * SWAP_FEE) / DIVISOR;
-    totalFees.add(BERO, fee, METRIC.TRADING_FEES);
+    totalFees.add(BERO, fee);
   });
 }
 
@@ -52,7 +50,7 @@ async function addBorrowFees(options: FetchOptions, totalFees: Balances) {
   borrowLogs.forEach((log) => {
     const amount = log.amount;
     const fee = (amount * BORROW_FEE) / DIVISOR;
-    totalFees.add(HONEY, fee, METRIC.BORROW_INTEREST);
+    totalFees.add(HONEY, fee);
   });
 }
 
@@ -64,7 +62,7 @@ async function addBribes(options: FetchOptions, totalFees: Balances) {
 
   const bribes = await options.api.multiCall({
     abi: "function getBribe() returns (address)",
-    calls: plugins.map((plugin: any) => ({
+    calls: plugins.map((plugin) => ({
       target: plugin,
     })),
   });
@@ -77,7 +75,7 @@ async function addBribes(options: FetchOptions, totalFees: Balances) {
     });
 
     logs.forEach((log) => {
-      totalFees.add(log.rewardToken, log.reward, "Bribes from external protocols");
+      totalFees.add(log.rewardToken, log.reward);
     });
   }
 }
@@ -95,14 +93,14 @@ async function addHoldersRevenue(options: FetchOptions, balances: Balances) {
       "event Distributed(bytes indexed valPubkey, uint64 indexed nextTimestamp, address indexed receiver, uint256 amount)",
     topics: [
       DISTRIBUTED_TOPIC_0,
-      null as any,
-      null as any,
+      null,
+      null,
       ethers.zeroPadValue(BERADROME_REWARD_VAULT, 32),
     ],
   });
 
   for (const log of logs) {
-    balances.add(BGT_ADDRESS, log.amount, "BGT staking rewards");
+    balances.add(BGT_ADDRESS, log.amount);
   }
 }
 
@@ -121,43 +119,23 @@ async function fetch(options: FetchOptions): Promise<FetchResultV2> {
   // Holders Revenue
   await addHoldersRevenue(options, dailyHoldersRevenue);
 
-  return {
-    dailyFees,
-    dailyBribesRevenue,
-    dailyRevenue: dailyHoldersRevenue,
-    dailyHoldersRevenue,
-  };
+  return { dailyFees, dailyBribesRevenue, dailyHoldersRevenue };
 }
 
-const breakdownMethodology = {
-  Fees: {
-    [METRIC.TRADING_FEES]: "Fees paid when buying/selling BERO token through the bonding curve mechanism, charged at 0.3% of trading amount",
-    [METRIC.BORROW_INTEREST]: "Fees paid by borrowers when borrowing HONEY, charged at 2.5% of borrowed amount",
-  },
-  BribesRevenue: {
-    "Bribes from external protocols": "Incentives paid by external protocols to veToken holders to direct emissions and liquidity to specific pools",
-  },
-  Revenue: {
-    "BGT staking rewards": "BGT rewards distributed through the Beradrome Reward Vault to token holders who are automatically staked",
-  },
-  HoldersRevenue: {
-    "BGT staking rewards": "BGT rewards distributed through the Beradrome Reward Vault to token holders who are automatically staked",
-  },
-};
-
 const adapter: Adapter = {
+  adapter: {
+    berachain: {
+      fetch,
+      start: "2025-02-06",
+    },
+  },
   version: 2,
-  fetch,
-  chains: [CHAIN.BERACHAIN],
-  start: "2025-02-06",
-  pullHourly: true,
   methodology: {
     Fees: "BERO bonding curve fees from buy/sell, borrow fees from borrowing.",
     BribesRevenue: "Bribes from plugins distributed to holders.",
-    Revenue: "BGT rewards distributed through Reward Vault to holders. Holders are automatically staked in Reward Vault.",
-    HoldersRevenue: "BGT rewards distributed through Reward Vault to holders. Holders are automatically staked in Reward Vault.",
+    HoldersRevenue:
+      "BGT rewards distributed through Reward Vault to holders. Holders are automatically staked in Reward Vault.",
   },
-  breakdownMethodology,
 };
 
 export default adapter;

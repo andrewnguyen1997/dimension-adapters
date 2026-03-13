@@ -18,9 +18,9 @@ interface DailyStats {
 }
 
 const methodology = {
-  Fees:
+  dailyFees:
     "All the services fees paid by users, including borrow, PSM, liquidation, redeem, flashLoan and interest",
-  Revenue:
+  dailyRevenue:
     "All the services fees paid by users, including borrow, PSM, liquidation, redeem, flashLoan and interest earned by Bucket",
 }
 

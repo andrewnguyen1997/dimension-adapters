@@ -102,7 +102,6 @@ const fetch: any = async (options: FetchOptions) => {
 
 const adapter: SimpleAdapter = {
   version: 2,
-  pullHourly: true,
   fetch,
   methodology: {
     Fees: 'Fees paid by users while trading via Binance Alpha app.',

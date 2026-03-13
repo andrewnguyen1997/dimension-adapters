@@ -4,7 +4,6 @@ import { ethers } from "ethers";
 import { FetchOptions } from "../adapters/types";
 import { queryAllium } from './allium';
 import { getCache, setCache } from "./cache";
-import { CHAIN } from './chains';
 import ADDRESSES from './coreAssets.json';
 import { getEnv } from './env';
 import { sleep } from '../utils/utils';
@@ -192,22 +191,22 @@ const ankrTokenCalls: any = {}
 const ankrChainMapping: {
   [chain: string]: string
 } = {
-  [CHAIN.ETHEREUM]: 'eth',
-  [CHAIN.BASE]: 'base',
-  [CHAIN.BSC]: 'bsc',
-  [CHAIN.ARBITRUM]: 'arbitrum',
-  [CHAIN.OPTIMISM]: 'optimism',
-  [CHAIN.FANTOM]: 'fantom',
-  [CHAIN.POLYGON]: 'polygon',
-  [CHAIN.POLYGON_ZKEVM]: 'polygon_zkevm',
-  [CHAIN.ERA]: 'zksync_era',
-  [CHAIN.AVAX]: 'avalanche',
-  [CHAIN.FLARE]: 'flare',
-  [CHAIN.XDAI]: 'gnosis',
-  [CHAIN.LINEA]: 'linea',
-  [CHAIN.ROLLUX]: 'rollux',
-  [CHAIN.SCROLL]: 'scroll',
-  [CHAIN.SYSCOIN]: 'syscoin',
+  ethereum: 'eth',
+  base: 'base',
+  bsc: 'bsc',
+  arbitrum: 'arbitrum',
+  optimism: 'optimism',
+  fantom: 'fantom',
+  polygon: 'polygon',
+  polygon_zkevm: 'polygon_zkevm',
+  era: 'zksync_era',
+  avax: 'avalanche',
+  flare: 'flare',
+  xdai: 'gnosis',
+  linea: 'linea',
+  rollux: 'rollux',
+  scroll: 'scroll',
+  syscoin: 'syscoin',
 }
 
 async function ankrGetTokens(address: string, { onlyWhitelisted = true }: {
@@ -546,12 +545,12 @@ export async function getSolanaReceivedDune({ options, balances, target, targets
 
 function getAlliumChain(chain: string): string {
   switch(chain) {
-    case CHAIN.AVAX: return 'avalanche'
-    case CHAIN.ERA: return 'zksync';
-    case CHAIN.XDAI: return 'gnosis';
-    case CHAIN.ROOTSTOCK: return 'rootstock';
-    case CHAIN.WC: return 'worldchain';
-    case CHAIN.MANTA: return 'manta_pacific';
+    case 'avax': return 'avalanche'
+    case 'era': return 'zksync';
+    case 'xdai': return 'gnosis';
+    case 'rsk': return 'rootstock';
+    case 'wc': return 'worldchain';
+    case 'manta': return 'manta_pacific';
     default: return chain
   }
 }
@@ -573,31 +572,31 @@ export async function getETHReceived({ options, balances, target, targets = [], 
 
   // you can find the supported chains and the documentation here: https://docs.allium.so/historical-chains/supported-blockchains/evm/ethereum
   const chainMap: any = {
-    [CHAIN.ETHEREUM]: 'ethereum',
-    [CHAIN.BASE]: 'base',
-    [CHAIN.OPTIMISM]: 'optimism',
-    [CHAIN.SCROLL]: 'scroll',
-    [CHAIN.BSC]: 'bsc',
-    [CHAIN.ARBITRUM]: 'arbitrum',
-    [CHAIN.AVAX]: 'avalanche',
-    [CHAIN.POLYGON]: 'polygon',
-    // [CHAIN.CELO]: 'celo',
-    [CHAIN.TRON]: 'tron',
-    [CHAIN.UNICHAIN]: 'unichain',
-    [CHAIN.ZORA]: 'zora',
-    [CHAIN.NEAR]: 'near',
-    [CHAIN.XDAI]: 'gnosis',
-    [CHAIN.INK]: 'ink',
-    [CHAIN.BERACHAIN]: 'berachain',
-    [CHAIN.POLYGON_ZKEVM]: 'polygon_zkevm',
-    [CHAIN.PLASMA]: 'plasma',
-    [CHAIN.MONAD]: 'monad',
+    ethereum: 'ethereum',
+    base: 'base',
+    optimism: 'optimism',
+    scroll: 'scroll',
+    bsc: 'bsc',
+    arbitrum: 'arbitrum',
+    avax: 'avalanche',
+    polygon: 'polygon',
+    // celo: 'celo',
+    tron: 'tron',
+    unichain: 'unichain',
+    zora: 'zora',
+    near: 'near',
+    xdai: 'gnosis',
+    ink: 'ink',
+    berachain: 'berachain',
+    polygon_zkevm: 'polygon_zkevm',
+    plasma: 'plasma',
+    monad: 'monad',
   }
   
   // https://docs.allium.so/changelog/deprecated-schemas
   const tableMap: any = {
-    [CHAIN.TRON]: 'trx_token_transfers',
-    [CHAIN.NEAR]: 'near_token_transfers',
+    tron: 'trx_token_transfers',
+    near: 'near_token_transfers',
     // bsc: 'bnb_token_transfers',
     // avax: 'avax_token_transfers',
     // polygon: 'matic_token_transfers',

@@ -1,7 +1,6 @@
 import { Chain } from "../../adapters/types";
 import { Adapter, FetchOptions } from "../../adapters/types";
 import { CHAIN } from "../../helpers/chains";
-import { METRIC } from "../../helpers/metrics";
 
 type IVault = {
   helper: string;
@@ -44,8 +43,10 @@ const contracts: IAddress = {
   },
 };
 
-async function fetch({ chain, api, fromApi, toApi, createBalances }: FetchOptions) {
-  const { helper, factory } = contracts[chain];
+async function getVaultsFees(
+  { api, fromApi, toApi, createBalances }: FetchOptions,
+  { helper, factory }: IVault
+) {
   const dailyFees = createBalances();
 
   const limit = await api.call({ target: factory, abi: abi.numVaults });
@@ -76,14 +77,14 @@ async function fetch({ chain, api, fromApi, toApi, createBalances }: FetchOption
     if (token0 && prevFee0 && currFee0) {
       const dailyFee0 = BigInt(currFee0) - BigInt(prevFee0);
       if (dailyFee0 >= 0) {
-        dailyFees.add(token0, dailyFee0, METRIC.MANAGEMENT_FEES);
+        dailyFees.add(token0, dailyFee0);
       }
     }
 
     if (token1 && prevFee1 && currFee1) {
       const dailyFee1 = BigInt(currFee1) - BigInt(prevFee1);
       if (dailyFee1 >= 0) {
-        dailyFees.add(token1, dailyFee1, METRIC.MANAGEMENT_FEES);
+        dailyFees.add(token1, dailyFee1);
       }
     }
   });
@@ -91,24 +92,18 @@ async function fetch({ chain, api, fromApi, toApi, createBalances }: FetchOption
   return { dailyFees };
 }
 
-const methodology = {
-  Fees: 'All yields are collected from deposited assets by liquidity providers.',
-};
-
-const breakdownMethodology = {
-  Fees: {
-    [METRIC.MANAGEMENT_FEES]: 'Fees collected by Arrakis protocol for managing liquidity vault positions on behalf of depositors',
-  },
-};
-
 const adapter: Adapter = {
+  methodology: {
+    Fees: 'All yields are collected from deposited assets by liquidity providers.',
+  },
+  adapter: {
+    [CHAIN.ETHEREUM]: {
+      fetch: (options: FetchOptions) =>
+        getVaultsFees(options, contracts[CHAIN.ETHEREUM]),
+      start: '2023-08-26',
+    },
+  },
   version: 2,
-  fetch,
-  chains: [CHAIN.ETHEREUM],
-  start: '2023-08-26',
-  methodology,
-  skipBreakdownValidation: true, // because cost are not clear
-  breakdownMethodology,
 };
 
 export default adapter;

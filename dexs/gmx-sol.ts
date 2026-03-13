@@ -1,10 +1,11 @@
 import request, { gql } from "graphql-request";
 import { FetchOptions, SimpleAdapter } from "../adapters/types";
 import { CHAIN } from "../helpers/chains";
+import { getUniqStartOfTodayTimestamp } from "../helpers/getUniSubgraphVolume";
 
-const fetch = async (_a: any, _b: any, options: FetchOptions) => {
-  const targetDate = new Date(options.startOfDay * 1000).toISOString();
-
+const fetchSolana = async (_tt: number, _t: any, options: FetchOptions) => {
+  const dayTimestamp = getUniqStartOfTodayTimestamp(new Date((options.startOfDay * 1000)))
+  const targetDate = new Date(dayTimestamp * 1000).toISOString();
   const query = gql`
     {
       volumeRecordDailies(
@@ -24,17 +25,19 @@ const fetch = async (_a: any, _b: any, options: FetchOptions) => {
     .filter((record: { timestamp: string }) => record.timestamp.split('T')[0] === targetDate.split('T')[0])
     .reduce((acc: number, record: { tradeVolume: string }) => acc + Number(record.tradeVolume), 0)
   if (dailyVolume === 0) throw new Error('Not found daily data!.')
-
   return {
+    timestamp: options.startOfDay,
     dailyVolume: dailyVolume / (10 ** 20),
   }
 }
 
 const adapter: SimpleAdapter = {
-  fetch,
-  version: 1,
-  chains: [CHAIN.SOLANA],
-  start: '2025-02-12',
+  adapter: {
+    [CHAIN.SOLANA]: {
+      fetch: fetchSolana,
+      start: '2025-02-12',
+    }
+  }
 }
 
 export default adapter;

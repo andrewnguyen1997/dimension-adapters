@@ -179,7 +179,6 @@ const adapter: SimpleAdapter = {
     methodology,
     breakdownMethodology,
     version: 2,
-    pullHourly: true,
     chains: [CHAIN.ARBITRUM],
     start: '2025-07-27',
 };

@@ -6,7 +6,6 @@ import { Dependencies, FetchOptions, SimpleAdapter } from "../adapters/types";
 import { CHAIN } from "../helpers/chains";
 import { queryDuneSql } from "../helpers/dune";
 import { getETHReceived } from '../helpers/token';
-import { METRIC } from '../helpers/metrics';
 
 const fetchSolana: any = async (_a: any, _b: any, options: FetchOptions) => {
   const dailyFees = options.createBalances();
@@ -64,7 +63,7 @@ const fetchSolana: any = async (_a: any, _b: any, options: FetchOptions) => {
   `;
 
   const fees = await queryDuneSql(options, query);
-  dailyFees.add(ADDRESSES.solana.SOL, fees[0].fee, METRIC.TRADING_FEES);
+  dailyFees.add(ADDRESSES.solana.SOL, fees[0].fee);
 
   return { dailyFees, dailyRevenue: dailyFees, }
 }
@@ -73,13 +72,10 @@ const feeCollector = '0xb8159ba378904F803639D274cEc79F788931c9C8'
 
 const fetch: any = async (_a: any, _b: any, options: FetchOptions) => {
   const dailyFees = options.createBalances();
-
-  const ethReceived = await getETHReceived({ options: options, target: feeCollector})
-  dailyFees.addBalances(ethReceived, METRIC.TRADING_FEES);
-
+  await getETHReceived({ options: options, balances: dailyFees, target: feeCollector})
   return {
     dailyFees,
-    dailyRevenue: dailyFees,
+    dailyRevenue: dailyFees
   }
 }
 
@@ -100,15 +96,7 @@ const adapter: SimpleAdapter = {
   methodology: {
     Fees: "All trading fees paid by users while using GMGN AI bot.",
     Revenue: "Trading fees are collected by GMGN AI protocol."
-  },
-  breakdownMethodology: {
-    Fees: {
-      [METRIC.TRADING_FEES]: "Fees paid by users while using GMGN bot.",
-    },
-    Revenue: {
-      [METRIC.TRADING_FEES]: "Trading fees are collected by GMGN AI protocol.",
-    },
-  },
+  }
 };
 
 export default adapter;

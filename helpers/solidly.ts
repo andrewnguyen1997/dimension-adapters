@@ -1,9 +1,6 @@
 import ADDRESSES from './coreAssets.json'
-import { BaseAdapter, FetchOptions, IJSON, SimpleAdapter, } from "../adapters/types";
-import { createFactoryExports } from "../factory/registry";
-import { CHAIN } from "./chains";
+import { FetchOptions, } from "../adapters/types";
 import { filterPools2 } from './uniswap';
-import { METRIC } from './metrics';
 
 const TOPIC_Notify = 'event NotifyReward(address indexed from, address indexed reward, uint indexed epoch, uint amount)';
 
@@ -61,9 +58,9 @@ export function getFeesExport({ VOTER_ADDRESS, FACTORY_ADDRESS,  }: { VOTER_ADDR
       const voterGauge = voterGauges[idx].toLowerCase()
       e.forEach((l: any) => {
         if (l.from.toLowerCase() !== voterGauge)
-          dailyBribesRevenue.add(l.reward, l.amount, "Bribes from other protocols")
+          dailyBribesRevenue.add(l.reward, l.amount)
         else
-          dailyRevenue.add(l.reward, l.amount, "Gauge emissions")
+          dailyRevenue.add(l.reward, l.amount)
 
       })
     })
@@ -73,50 +70,11 @@ export function getFeesExport({ VOTER_ADDRESS, FACTORY_ADDRESS,  }: { VOTER_ADDR
       const token1 = token1s[index]
       tradefeeLogs[index]
         .map((p: any) => {
-          dailyFees.add(token0, p.amount0, METRIC.SWAP_FEES)
-          dailyFees.add(token1, p.amount1, METRIC.SWAP_FEES)
+          dailyFees.add(token0, p.amount0)
+          dailyFees.add(token1, p.amount1)
         })
     });
 
     return { dailyFees, dailyRevenue, dailyHoldersRevenue: dailyRevenue, dailyBribesRevenue, };
   }
 }
-
-type SolidlyChainConfig = {
-  voterAddress: string;
-  factoryAddress: string;
-  start?: string;
-}
-
-function solidlyFeesExports(config: IJSON<SolidlyChainConfig>, overrides?: Partial<SimpleAdapter>) {
-  const exportObject: BaseAdapter = {}
-  Object.entries(config).map(([chain, chainConfig]) => {
-    exportObject[chain] = {
-      fetch: getFeesExport({ VOTER_ADDRESS: chainConfig.voterAddress, FACTORY_ADDRESS: chainConfig.factoryAddress }),
-      start: chainConfig.start,
-    }
-  })
-  return { version: 2, adapter: exportObject, pullHourly: true, ...overrides } as SimpleAdapter
-}
-
-const solidlyEntries: Record<string, any> = {
-  "equalizer-exchange": {
-    [CHAIN.FANTOM]: { voterAddress: '0xE3D1A117dF7DCaC2eB0AC8219341bAd92f18dAC1', factoryAddress: '0xc6366EFD0AF1d09171fe0EBF32c7943BB310832a', start: '2022-12-09' },
-    [CHAIN.SONIC]: { voterAddress: '0x17fa9dA6e01aD59513707F92033a6eb03CcB10B4', factoryAddress: '0xDDD9845Ba0D8f38d3045f804f67A1a8B9A528FcC', start: '2024-12-11' },
-  },
-  "Scale": {
-    [CHAIN.BASE]: { voterAddress: '0x46ABb88Ae1F2a35eA559925D99Fdc5441b592687', factoryAddress: '0xEd8db60aCc29e14bC867a497D94ca6e3CeB5eC04', start: '2023-09-23' },
-  },
-}
-
-const protocols = {} as any;
-Object.entries(solidlyEntries).forEach(([protocolName, entry]: [string, any]) => {
-  if (entry.chainConfig) {
-    const { chainConfig, ...overrides } = entry
-    protocols[protocolName] = solidlyFeesExports(chainConfig, overrides)
-  } else {
-    protocols[protocolName] = solidlyFeesExports(entry)
-  }
-})
-
-export const { protocolList, getAdapter } = createFactoryExports(protocols);

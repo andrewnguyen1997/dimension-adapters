@@ -26,7 +26,7 @@ const fetch = async (_a: any, _b: any, options: FetchOptions) => {
 
   dailyFees.addCGToken('thorchain', Number(dayData.networkFee) / 1e8);
 
-  return { dailyFees, dailyRevenue: dailyFees };
+  return { dailyFees };
 };
 
 const adapter: Adapter = {

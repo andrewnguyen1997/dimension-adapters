@@ -200,7 +200,6 @@ function burnBatchDualLog(data: any, product: any) {
 
 const adapter: SimpleAdapter = {
   version: 2,
-  pullHourly: true,
   methodology,
   fetch,
   adapter: {

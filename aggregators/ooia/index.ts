@@ -1,4 +1,4 @@
-import { FetchOptions, SimpleAdapter } from "../../adapters/types";
+import { FetchOptions, FetchV2, SimpleAdapter } from "../../adapters/types";
 import { CHAIN } from "../../helpers/chains";
 import fetchURL from "../../utils/fetchURL";
 
@@ -12,7 +12,7 @@ const fromMicro = (value: string) => {
   return (parseFloat(value) / 1e6).toString();
 };
 
-const fetch = async (_a: any, _b: any, { startOfDay }: FetchOptions) => {
+const fetch: FetchV2 = async ({ startOfDay }: FetchOptions) => {
   const { dailyVolume }: IAPIResponse = await fetchURL(
     `${url}?timestamp=${startOfDay}&currency=${currency}`
   );
@@ -23,7 +23,7 @@ const fetch = async (_a: any, _b: any, { startOfDay }: FetchOptions) => {
 };
 
 const adapters: SimpleAdapter = {
-  version: 1,
+  version: 2,
   adapter: {
     [CHAIN.TON]: {
       fetch,

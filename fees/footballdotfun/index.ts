@@ -77,7 +77,6 @@ const methodology = {
 
 const adapter: SimpleAdapter = {
   version: 2,
-  pullHourly: true,
   fetch,
   chains: [CHAIN.BASE],
   start: "2025-08-03",

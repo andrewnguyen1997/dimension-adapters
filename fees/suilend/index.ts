@@ -21,8 +21,7 @@ const methodology = {
   Fees: 'Interest and fees paid by borrowers and the liquidated',
   UserFees: 'Interest and fees paid by borrowers and the liquidated',
   Revenue: 'The portion of the total fees going to the Suilend treasury',
-  ProtocolRevenue: 'The portion of the total fees going to the Suilend treasury',
-  SupplySideRevenue: "The portion of interest earned by lenders, liquidator bonuses and staking rewards"
+  ProtocolReveneue: 'The portion of the total fees going to the Suilend treasury',
 }
 
 const breakdownMethodology = {
@@ -36,16 +35,11 @@ const breakdownMethodology = {
   },
   Revenue: {
     [METRIC.BORROW_INTEREST]: 'The portion of the total fees going to the Suilend treasury',
-    [METRIC.LIQUIDATION_FEES]: 'Liquidation fees going to the Suilend treasury',
+    [METRIC.LIQUIDATION_FEES]: 'Liquidation fees and bonus were paid going to the Suilend treasury',
   },
-  ProtocolRevenue: {
+  ProtocolReveneue: {
     [METRIC.BORROW_INTEREST]: 'The portion of the total fees going to the Suilend treasury',
-    [METRIC.LIQUIDATION_FEES]: 'Liquidation fees going to the Suilend treasury',
-  },
-  SupplySideRevenue: {
-    [METRIC.BORROW_INTEREST]: 'The portion of the total fees going to lenders',
-    [METRIC.LIQUIDATION_FEES]: 'Liquidator bonuses',
-    [METRIC.STAKING_REWARDS]: 'Staking rewards from Suilend strategies',
+    [METRIC.LIQUIDATION_FEES]: 'Liquidation fees and bonus were paid going to the Suilend treasury',
   },
 }
 
@@ -55,25 +49,19 @@ const fetchSuilendStats = async ({ endTimestamp, startTimestamp, createBalances 
 
   const dailyFees = createBalances()
   const dailyRevenue = createBalances()
-  const dailySupplySideRevenue = createBalances()
 
-  dailyFees.addUSDValue(stats.borrowInterestPaid + stats.borrowFees + stats.protocolFees, METRIC.BORROW_INTEREST)
+  dailyFees.addUSDValue(stats.borrowInterestPaid + stats.borrowFees, METRIC.BORROW_INTEREST)
   dailyFees.addUSDValue(stats.liquidationProtocolFees + stats.liquidatorBonuses, METRIC.LIQUIDATION_FEES)
-  dailyFees.addUSDValue(stats.stakingRevenue, METRIC.STAKING_REWARDS)
 
   dailyRevenue.addUSDValue(stats.borrowFees + stats.protocolFees, METRIC.BORROW_INTEREST)
   dailyRevenue.addUSDValue(stats.liquidationProtocolFees, METRIC.LIQUIDATION_FEES)
-
-  dailySupplySideRevenue.addUSDValue(stats.stakingRevenue, METRIC.STAKING_REWARDS)
-  dailySupplySideRevenue.addUSDValue(stats.borrowInterestPaid, METRIC.BORROW_INTEREST)
-  dailySupplySideRevenue.addUSDValue(stats.liquidatorBonuses, METRIC.LIQUIDATION_FEES)
+  dailyRevenue.addUSDValue(stats.stakingRevenue, METRIC.STAKING_REWARDS)
 
   return {
     dailyFees,
     dailyUserFees: dailyFees,
     dailyRevenue,
     dailyProtocolRevenue: dailyRevenue,
-    dailySupplySideRevenue
   };
 };
 
@@ -86,7 +74,6 @@ const adapter: Adapter = {
     },
   },
   methodology,
-  breakdownMethodology
 };
 
 export default adapter;

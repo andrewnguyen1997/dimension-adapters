@@ -38,7 +38,6 @@ const adapter: Adapter = {
   methodology,
   fetch,
   version: 2,
-  pullHourly: true,
   adapter: {
     [CHAIN.ETHEREUM]: { start: '2024-09-20', },
     [CHAIN.BSC]: { start: '2024-09-19', },

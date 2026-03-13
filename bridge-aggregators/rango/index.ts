@@ -41,7 +41,7 @@ const RangoChains: Record<string, string> = {
   [CHAIN.TON]: 'TON',
   [CHAIN.BERACHAIN]: 'BERACHAIN',
   [CHAIN.AURORA]: 'AURORA',
-  [CHAIN.RIPPLE]: 'XRPL',
+  [CHAIN.XRPL]: 'XRPL',
   [CHAIN.HYPERLIQUID]: 'HYPERLIQUID',
   [CHAIN.MONAD]: 'MONAD',
   [CHAIN.UNICHAIN]: 'UNICHAIN',

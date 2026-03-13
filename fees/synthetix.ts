@@ -36,7 +36,6 @@ const graphs = (chain: Chain) => {
 
 const adapter: Adapter = {
   version: 2,
-  pullHourly: true,
   methodology,
   adapter: {
     [CHAIN.ETHEREUM]: {

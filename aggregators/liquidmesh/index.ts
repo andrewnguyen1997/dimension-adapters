@@ -113,7 +113,7 @@ const adapter: SimpleAdapter = {
 			},
 		};
 	}, {
-		[CHAIN.SOLANA]: {
+		solana: {
 			fetch: fetchSolana,
 		}
 	}),

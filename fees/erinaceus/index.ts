@@ -65,7 +65,6 @@ const fetch = (chain: Chain) => {
 
 const adapter: Adapter = {
   version: 2,
-  pullHourly: true,
   adapter: {
     [CHAIN.BAHAMUT]: {
       fetch: fetch(CHAIN.BAHAMUT),

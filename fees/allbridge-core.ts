@@ -1,9 +1,7 @@
-import { Balances } from "@defillama/sdk";
 import { CHAIN } from "../helpers/chains";
 import { Chain, FetchOptions, SimpleAdapter } from "../adapters/types";
 import { httpGet } from "../utils/fetchURL";
 import { queryEvents } from '../helpers/sui';
-import { METRIC } from "../helpers/metrics";
 
 type TChainAddress = {
   [s: Chain | string]: string[];
@@ -64,7 +62,7 @@ const SUI_EVENT_TYPES = [
 const event_swap_fromUSD = 'event SwappedFromVUsd(address recipient,address token,uint256 vUsdAmount,uint256 amount,uint256 fee)';
 const event_swap_toUSD = 'event SwappedToVUsd(address sender,address token,uint256 amount,uint256 vUsdAmount,uint256 fee)';
 
-const fetchFees = async ({ getLogs, createBalances, chain, api }: FetchOptions): Promise<Balances> => {
+const fetchFees = async ({ getLogs, createBalances, chain, api }: FetchOptions): Promise<number> => {
   const balances = createBalances();
   const pools = lpTokenAddresses[chain]
   const logs_fromUSD = await getLogs({ targets: pools, eventAbi: event_swap_fromUSD, flatten: false, })
@@ -76,17 +74,12 @@ const fetchFees = async ({ getLogs, createBalances, chain, api }: FetchOptions):
 
   function addLogs(logs: any, index: number) {
     const token = tokens[index]
-    // if (!token) return;
-    if (!token){
-      logs.forEach((log: any) => balances.addGasToken(log.fee, METRIC.SWAP_FEES));
-    }else {
-      logs.forEach((log: any) => balances.add(token, log.fee, METRIC.SWAP_FEES))
-    }
+    logs.forEach((log: any) => balances.add(token, log.fee))
   }
-  return balances;
+  return balances.getUSDValue();
 };
 
-const fetchFeesSui = async (options: FetchOptions): Promise<Balances> => {
+const fetchFeesSui = async (options: FetchOptions): Promise<number> => {
   const { createBalances } = options;
   const balances = createBalances();
 
@@ -95,23 +88,23 @@ const fetchFeesSui = async (options: FetchOptions): Promise<Balances> => {
       eventType,
       options,
     });
-    events.forEach((eventData) => balances.add('0x' + eventData.token, eventData.fee, METRIC.SWAP_FEES));
+    events.forEach((eventData) => balances.add('0x' + eventData.token, eventData.fee));
   }
 
-  return balances;
+  return balances.getUSDValue();
 };
 
 export async function fetchFeesAmountFromAnalyticsApi(
   chainCode: string,
   options: FetchOptions,
-): Promise<Balances> {
+): Promise<number> {
   const { createBalances, startOfDay, toTimestamp } = options;
   const balances = createBalances();
 
   const eventData = await getEventsFromAnalyticsApi(chainCode, startOfDay * 1000, toTimestamp * 1000);
-  eventData.map((data) => balances.add(data.token, data.fee, METRIC.SWAP_FEES));
+  eventData.map((data) => balances.add(data.token, data.fee));
 
-  return balances;
+  return balances.getUSDValue();
 }
 
 interface AnalyticsEvent {
@@ -130,7 +123,7 @@ export async function getEventsFromAnalyticsApi(
 }
 
 const fetch: any = async (options: FetchOptions) => {
-  let dailyFees: Balances;
+  let dailyFees: number;
   if (options.chain === CHAIN.TRON) {
     dailyFees = await fetchFeesAmountFromAnalyticsApi('TRX', options);
   } else if (options.chain === CHAIN.SUI) {
@@ -140,10 +133,8 @@ const fetch: any = async (options: FetchOptions) => {
   } else {
     dailyFees = await fetchFees(options);
   }
-  const dailySupplySideRevenue = dailyFees.clone();
-  dailySupplySideRevenue.resizeBy(0.8);
-  const dailyRevenue = dailyFees.clone();
-  dailyRevenue.resizeBy(0.2);
+  const dailyRevenue = dailyFees * 0.2;
+  const dailySupplySideRevenue = dailyFees * 0.8;
   return {
     dailyFees,
     dailyRevenue,
@@ -157,22 +148,9 @@ const methodology = {
   Revenue: "20% of the swap fees goes to governance",
 };
 
-const breakdownMethodology = {
-  Fees: {
-    [METRIC.SWAP_FEES]: 'Fees collected from cross-chain token swaps at a 0.3% rate.',
-  },
-  SupplySideRevenue: {
-    [METRIC.SWAP_FEES]: '80% of swap fees distributed to liquidity providers.',
-  },
-  Revenue: {
-    [METRIC.SWAP_FEES]: '20% of swap fees going to protocol governance.',
-  },
-};
-
 const adapters: SimpleAdapter = {
   version: 2,
   methodology,
-  breakdownMethodology,
   fetch,
   adapter: {
     [CHAIN.ETHEREUM]: { start: '2023-05-14', },

@@ -76,7 +76,6 @@ const fetch = async (options: FetchOptions) => {
 
 const adapter: SimpleAdapter = {
   version: 2,
-  pullHourly: true,
   adapter: {
     [CHAIN.PLUME]: {
       fetch,
@@ -85,7 +84,6 @@ const adapter: SimpleAdapter = {
     [CHAIN.PLUME_LEGACY]: {
       fetch: async () => ({}),
       start: factories[CHAIN.PLUME_LEGACY].start,
-      deadFrom: "2025-06-25",
     },
   },
 };

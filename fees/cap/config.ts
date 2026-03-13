@@ -35,7 +35,6 @@ export const capConfig = {
 				fromBlock: 22874056,
 			},
 		},
-		feeRecipient: "0x5Eaf535b1e399DE08Db23b4E18bD3cD29E16b825",
 	},
 } as const;
 

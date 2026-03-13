@@ -2,7 +2,6 @@ import { request, gql } from "graphql-request";
 import { FetchOptions, SimpleAdapter } from "../adapters/types";
 import { CHAIN } from "../helpers/chains";
 import BigNumber from "bignumber.js";
-import { METRIC } from "../helpers/metrics";
 
 const GRAPHQL_URL = "https://graphql.mainnet.iota.cafe";
 const PACKAGE_ID =
@@ -29,7 +28,7 @@ const buildQuery = (cursor: string | null, eventType: string) => gql`
     ) {
       pageInfo {
         hasNextPage
-        startCursor
+        endCursor
       }
       edges {
         node {
@@ -80,31 +79,14 @@ const processTradingFees = (
   acc: Accumulator,
 ): boolean => {
   return processEvents(edges, from, to, acc, (json, acc) => {
-    if (String(json.event_type) === "0") return;
+    acc.rollover = acc.rollover.plus(json.rollover_fee || "0");
 
-    const collateral = new BigNumber(String(json.original_collateral || "0"));
-    let funding = new BigNumber(String(json.funding_fee || "0"));
-    let rollover = new BigNumber(String(json.rollover_fee || "0"));
-
+    const funding = new BigNumber(json.funding_fee || "0");
     if (json.is_funding_fee_profit) {
       acc.funding = acc.funding.minus(funding);
     } else {
-      if (!json.is_increase) {
-        const totalFeesOwed = funding.plus(rollover);
-
-        if (totalFeesOwed.gt(collateral)) {
-          const realRollover = BigNumber.min(rollover, collateral);
-          const realFunding = BigNumber.max(collateral.minus(realRollover), 0);
-
-          rollover = realRollover;
-          funding = realFunding;
-        }
-      }
-
       acc.funding = acc.funding.plus(funding);
     }
-
-    acc.rollover = acc.rollover.plus(rollover);
   });
 };
 
@@ -132,7 +114,7 @@ const fetchEvents = async (
 
     const shouldContinue = processor(response.events.edges, from, to, acc);
     if (!shouldContinue) break;
-    cursor = response.events.pageInfo.startCursor;
+    cursor = response.events.pageInfo.endCursor;
   }
 };
 
@@ -170,48 +152,30 @@ const fetch = async (_a: any, _b: any, options: FetchOptions) => {
   // Protocol = Stake + Dev
   const protocolRevenue = divDecimals(acc.stake.plus(acc.dev));
   // LP provider = LP fee + Funding + Rollover
-  const SupplySideRevenue = divDecimals(
+  const providersRevenue = divDecimals(
     acc.lp.plus(acc.funding).plus(acc.rollover),
   );
-  const totalRevenue = protocolRevenue + SupplySideRevenue;
+  const totalRevenue = protocolRevenue + providersRevenue;
 
   const dailyFees = createBalances();
   const dailyRevenue = createBalances();
-  const dailyProtocolRevenue = createBalances();
   const dailySupplySideRevenue = createBalances();
-
-  dailyFees.addUSDValue(totalRevenue, METRIC.TRADING_FEES);
-  dailyRevenue.addUSDValue(protocolRevenue, METRIC.PROTOCOL_FEES);
-  dailySupplySideRevenue.addUSDValue(SupplySideRevenue, METRIC.LP_FEES);
+  
+  dailyFees.addUSDValue(totalRevenue);
+  dailyRevenue.addUSDValue(protocolRevenue);
+  dailySupplySideRevenue.addUSDValue(providersRevenue);
 
   return {
     dailyFees,
     dailyRevenue,
     dailyProtocolRevenue: dailyRevenue,
-    dailySupplySideRevenue,
+    dailySupplySideRevenue: dailySupplySideRevenue,
   };
-};
-
-const breakdownMethodology = {
-  Fees: {
-    [METRIC.TRADING_FEES]: "All trading, funding, and rollover fees collected from users across all position events.",
-  },
-  Revenue: {
-    [METRIC.PROTOCOL_FEES]: "Fees directed to the staking and developer vaults from deposit fee events.",
-  },
-  ProtocolRevenue: {
-    [METRIC.PROTOCOL_FEES]: "Fees directed to the staking and developer vaults from deposit fee events.",
-  },
-  SupplySideRevenue: {
-    [METRIC.LP_FEES]: "Fees distributed to liquidity providers including LP share of deposit fees, net funding fees, and rollover fees.",
-  },
 };
 
 const adapter: SimpleAdapter = {
   version: 1,
-  fetch,
-  chains: [CHAIN.IOTA],
-  start: "2025-10-23",
+  adapter: { [CHAIN.IOTA]: { fetch, start: "2025-10-23" } },
   allowNegativeValue: true,
   methodology: {
     Fees: "All trading, funding and rollover fees collected from users",
@@ -219,7 +183,6 @@ const adapter: SimpleAdapter = {
     ProtocolRevenue: "Fees directed to the protocol vaults for maintenance",
     SupplySideRevenue: "Fees distributed to liquidity providers, adjusted for funding profit/loss",
   },
-  breakdownMethodology,
 };
 
 export default adapter;

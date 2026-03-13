@@ -6,7 +6,6 @@ import {
 } from "../../adapters/types";
 import { CHAIN } from "../../helpers/chains";
 import { queryDuneSql } from "../../helpers/dune";
-import { METRIC } from "../../helpers/metrics";
 
 export async function aurHelperTotalSuiDeployed(
   options: FetchOptions,
@@ -27,7 +26,7 @@ export async function aurHelperTotalSuiDeployed(
   const dailyFees = options.createBalances();
   if (results.length > 0) {
     const revenue = results[0].total_sui_deployed || 0;
-    dailyFees.addCGToken("sui", revenue, "Game deployment fees");
+    dailyFees.addCGToken("sui", revenue);
   }
 
   return dailyFees;
@@ -39,8 +38,8 @@ const aurEvent =
 const fetch: any = async (_a: any, _b: any, options: FetchOptions) => {
   const dailyFees = await aurHelperTotalSuiDeployed(options, aurEvent);
 
-  const dailyProtocolRevenue = dailyFees.clone(0.083, METRIC.PROTOCOL_FEES);
-  const dailyHoldersRevenue = dailyFees.clone(0.5, METRIC.TOKEN_BUY_BACK);
+  const dailyProtocolRevenue = dailyFees.clone(0.083);
+  const dailyHoldersRevenue = dailyFees.clone(0.5);
 
   return {
     dailyFees,
@@ -50,18 +49,6 @@ const fetch: any = async (_a: any, _b: any, options: FetchOptions) => {
   };
 };
 
-const breakdownMethodology = {
-  Fees: {
-    "Game deployment fees": "12% of total SUI deployed on AUR game boards, collected as protocol fees from each game round",
-  },
-  ProtocolRevenue: {
-    [METRIC.PROTOCOL_FEES]: "1% of total deployed SUI allocated to protocol treasury for development, marketing, and partnerships",
-  },
-  HoldersRevenue: {
-    [METRIC.TOKEN_BUY_BACK]: "11% of deployed SUI used to buyback AUR tokens and provide liquidity on DEXs",
-  },
-};
-
 const adapter: SimpleAdapter = {
   version: 1,
   fetch,
@@ -69,14 +56,13 @@ const adapter: SimpleAdapter = {
   start: "2025-12-12",
   dependencies: [Dependencies.DUNE],
   methodology: {
-    Fees: "Count SUI tokens collected from 12% of total SUI deployed on AUR boards",
+    Fee: "Count SUI tokens collected from 12% of total SUI deployed on AUR boards",
     Revenue: "All fees are revenue",
     HoldersRevenue:
       "11% of deployed SUI are used to buyback and add liquidity for AUR on DEXs.",
     ProtocolRevenue:
       "1% of total deployed SUI to the protocol treasury to fund development, marketing, and strategic partnerships.",
   },
-  breakdownMethodology,
 };
 
 export default adapter;

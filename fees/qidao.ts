@@ -69,7 +69,6 @@ const adapter: SimpleAdapter = {
     [CHAIN.XDAI]: options,
   },
   version: 2,
-  pullHourly: true,
 };
 
 export default adapter;

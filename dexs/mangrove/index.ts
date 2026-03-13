@@ -82,7 +82,6 @@ async function fetch({
 
 const adapter: Adapter = {
   version: 2,
-  pullHourly: true,
   adapter: {
     ...Object.entries(mangrove).reduce((acc, [key, config]) => {
       acc[key] = {
@@ -93,7 +92,7 @@ const adapter: Adapter = {
     }, {} as BaseAdapter),
   },
   methodology: {
-    Volume: "Sum of all offers taken in the last 24hrs",
+    dailyVolume: "Sum of all offers taken in the last 24hrs",
   },
 };
 

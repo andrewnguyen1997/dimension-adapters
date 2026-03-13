@@ -35,7 +35,6 @@ const fetch = async ({ getLogs }: FetchOptions): Promise<FetchResultVolume> => {
 
 const adapter: SimpleAdapter = {
   version: 2,
-  pullHourly: true,
   fetch,
   chains: [CHAIN.CORE],
   start: '2026-01-01',

@@ -27,7 +27,6 @@ const adapter: SimpleAdapter = {
   chains: [CHAIN.SUI],
   fetch,
   start: '2024-01-05',
-  deadFrom: '2026-01-01', //migrated to zo 
 };
 
 export default adapter;

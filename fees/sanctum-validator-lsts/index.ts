@@ -102,7 +102,6 @@ const fetch: any = async (_a: any, _b: any, options: FetchOptions) => {
 
   const dailyFees = options.createBalances();
   const dailyRevenue = options.createBalances();
-  const dailySupplySideRevenue = options.createBalances()
 
   dailyFees.addCGToken('solana', Number(fees[0].daily_epoch_fees), METRIC.STAKING_REWARDS)
   dailyFees.addCGToken('solana', Number(fees[0].daily_withdraw_and_deposit_fees), METRIC.DEPOSIT_WITHDRAW_FEES)
@@ -110,14 +109,11 @@ const fetch: any = async (_a: any, _b: any, options: FetchOptions) => {
   dailyRevenue.addCGToken('solana', Number(fees[0].daily_epoch_revenue), METRIC.STAKING_REWARDS)
   dailyRevenue.addCGToken('solana', Number(fees[0].daily_withdraw_and_deposit_fees), METRIC.DEPOSIT_WITHDRAW_FEES)
 
-  dailySupplySideRevenue.addCGToken('solana', Number(fees[0].daily_epoch_fees) - Number(fees[0].daily_epoch_revenue), METRIC.STAKING_REWARDS)
-
   return {
     dailyFees,
     dailyRevenue: dailyRevenue,
     dailyProtocolRevenue: dailyRevenue,
     dailyHoldersRevenue: 0,
-    dailySupplySideRevenue
   };
 };
 
@@ -126,7 +122,6 @@ const methodology = {
   Revenue: "2.5% of staking rewards + withdrawal/deposit fees from Sanctum LSTs",
   ProtocolRevenue: "2.5% of staking rewards + withdrawal/deposit fees from Sanctum LSTs",
   HoldersRevenue: "No revenue share to CLOUD token holders",
-  SupplySideRevenue: "97.5% of staking rewards go to stakers"
 };
 
 const breakdownMethodology = {
@@ -142,9 +137,6 @@ const breakdownMethodology = {
     [METRIC.STAKING_REWARDS]: '2.5% of validators staking rewards from Sanctum LSTS.',
     [METRIC.DEPOSIT_WITHDRAW_FEES]: 'All SOL deposit and withdraw fees.',
   },
-  SupplySideRevenue: {
-    [METRIC.STAKING_REWARDS]: "97.5% of staking rewards go to stakers"
-  }
 }
 
 const adapter: SimpleAdapter = {

@@ -63,7 +63,7 @@ for (const [chain, chainCfg] of Object.entries(baseAdapter.adapter ?? {})) {
     const dailyRevenue: Balances = options.createBalances();
 
     // 2) Gearbox TreasurySplitter fees (ETH chain only)
-    if (chain === CHAIN.ETHEREUM) {
+    if (chain === "ethereum") {
       const gearboxDailyFees: Balances = await addTokensReceived({
         options,
         tokens: GEARBOX_FEE_TOKENS,
@@ -106,7 +106,5 @@ baseAdapter.methodology = {
   ProtocolRevenue: "Total revenue = 50% of Gearbox TreasurySplitter inflows (Morpho fees excluded).",
   SupplySideRevenue: "Only from Morpho/Euler. Gearbox does not contribute supply-side revenue.",
 };
-
-baseAdapter.pullHourly = true;
 
 export default baseAdapter;

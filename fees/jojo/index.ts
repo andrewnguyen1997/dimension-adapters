@@ -33,7 +33,6 @@ const adapter: SimpleAdapter = {
         ProtocolRevenue: 'Total trading fees paid by users.',
     },
     version: 2,
-    pullHourly: true,
     adapter: {
         [CHAIN.BASE]: {
             fetch: getFetch,

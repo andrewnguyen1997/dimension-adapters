@@ -42,7 +42,6 @@ const fetch = async (options: FetchOptions) => {
 
 const adapter: SimpleAdapter = {
   version: 2,
-  pullHourly: true,
   fetch,
   start: '2025-08-21',
   adapter: {

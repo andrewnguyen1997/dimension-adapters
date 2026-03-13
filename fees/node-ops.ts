@@ -26,7 +26,6 @@ const fetch = async (options: FetchOptions) => {
 
 export default {
   version: 2,
-  pullHourly: true,
   fetch,
   start: '2025-07-11',
   chains: [CHAIN.ARBITRUM],

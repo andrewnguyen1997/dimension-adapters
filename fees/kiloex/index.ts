@@ -28,33 +28,19 @@ const fetch = (chainId: string) => {
     const dayTimestamp = getUniqStartOfTodayTimestamp(new Date(timestamp * 1000))
     const fees: IFee[] = (await fetchURL(endpoints[chainId]));
 
-    const record = fees.find(item => item.time === dayTimestamp)
-    if (!record) return {}
-
-    const dailyFees = Number(record.dayTradeFee)
-    const dailyRevenue = dailyFees * 0.7
-    const dailySupplySideRevenue = dailyFees * 0.3
+    const dailyFees = fees
+      .find(item => item.time === dayTimestamp)?.dayTradeFee
 
     return {
       dailyFees,
-      dailyRevenue,
-      dailySupplySideRevenue,
-      dailyProtocolRevenue: dailyRevenue
+      timestamp: dayTimestamp,
     };
   };
 };
 
 
-const methodology = {
-  Fees: "Trading fees collected from traders",
-  Revenue: "70% of trading fees retained by the protocol",
-  ProtocolRevenue: "70% of trading fees retained by the protocol",
-  SupplySideRevenue: "30% of trading fees distributed to vault liquidity providers",
-};
-
 const adapter: SimpleAdapter = {
   version: 1,
-  methodology,
   adapter: {
     [CHAIN.BSC]: {
       fetch: fetch(CHAIN.BSC), start: '2023-06-12'
@@ -66,10 +52,10 @@ const adapter: SimpleAdapter = {
       fetch: fetch(CHAIN.MANTA), start: '2023-11-01'
     },
     [CHAIN.TAIKO]: {
-      fetch: fetch(CHAIN.TAIKO), start: '2024-05-30', deadFrom: '2026-02-10'
+      fetch: fetch(CHAIN.TAIKO), start: '2024-05-30'
     },
     [CHAIN.BSQUARED]: {
-      fetch: fetch(CHAIN.BSQUARED), start: '2024-07-30', deadFrom: '2026-02-24'
+      fetch: fetch(CHAIN.BSQUARED), start: '2024-07-30'
     },
     [CHAIN.BASE]: {
       fetch: fetch(CHAIN.BASE), start: '2024-10-09'

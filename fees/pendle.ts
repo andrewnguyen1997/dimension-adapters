@@ -1,5 +1,6 @@
 import ADDRESSES from '../helpers/coreAssets.json'
 import {
+  ChainBlocks,
   FetchOptions,
   FetchResultFees,
   SimpleAdapter,
@@ -90,6 +91,8 @@ const chainConfig: IConfig = {
 
 const fetch = (chain: Chain) => {
   return async (
+    timestamp: number,
+    _: ChainBlocks,
     options: FetchOptions
   ): Promise<FetchResultFees> => {
     await getWhitelistedAssets(options.api);
@@ -235,6 +238,7 @@ const fetch = (chain: Chain) => {
       dailyProtocolRevenue,
       dailyHoldersRevenue,
       dailySupplySideRevenue,
+      timestamp,
     };
   };
 };
@@ -248,8 +252,6 @@ const methodology = {
 }
 
 const adapter: SimpleAdapter = {
-  version: 2,
-  pullHourly: true,
   methodology,
   adapter: {
     [CHAIN.ETHEREUM]: {

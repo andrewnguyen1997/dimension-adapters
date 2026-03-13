@@ -1,5 +1,4 @@
 import type { SimpleAdapter } from '../adapters/types'
-import { CHAIN } from '../helpers/chains'
 import { httpPost } from '../utils/fetchURL';
 
 const POOLS_SERVICE_URL = 'https://veax-liquidity-pool.veax.com/v1/rpc'
@@ -23,7 +22,7 @@ const rpc = (url: string) =>
 
 const adapter: SimpleAdapter = {
   adapter: {
-    [CHAIN.NEAR]: {
+    near: {
       runAtCurrTime: true,
       start: '2023-04-27',
       fetch: async () => {

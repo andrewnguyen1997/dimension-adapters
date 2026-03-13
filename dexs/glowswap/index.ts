@@ -1,5 +1,4 @@
 import { SimpleAdapter } from "../../adapters/types"
-import { CHAIN } from "../../helpers/chains"
 import { httpGet } from "../../utils/fetchURL"
 
 const fetch = async () => {
@@ -13,7 +12,7 @@ const fetch = async () => {
 const adapter: SimpleAdapter = {
   version: 2,
   adapter: {
-    [CHAIN.BSQUARED]: {
+    bsquared: {
       fetch,
             runAtCurrTime: true,
     }

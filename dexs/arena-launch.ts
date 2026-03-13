@@ -31,7 +31,6 @@ async function fetch({ createBalances, getLogs }: FetchOptions) {
 
 export default {
   version: 2,
-  pullHourly: true,
   methodology: {
     Fees: 'All fees paid by users for trading tokens.',
     Revenue: 'All fees paid by users for trading tokens.',

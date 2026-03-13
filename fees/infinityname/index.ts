@@ -80,7 +80,6 @@ const methodology = {
 
 const adapter: SimpleAdapter = {
   version: 2,
-  pullHourly: true,
   fetch,
   adapter: chainConfig,
   methodology,

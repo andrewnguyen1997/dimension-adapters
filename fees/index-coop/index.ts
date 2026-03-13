@@ -159,7 +159,6 @@ async function fetch(options: FetchOptions): Promise<FetchResultV2> {
 
 const adapter: Adapter = {
   version: 2,
-  pullHourly: true,
   fetch,
   adapter: {
     [CHAIN.ETHEREUM]: { start: "2022-09-30" },

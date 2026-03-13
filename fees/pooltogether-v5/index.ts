@@ -74,7 +74,6 @@ const methodology = {
 
 const adapter: SimpleAdapter = {
     version: 2,
-    pullHourly: true,
     fetch,
     adapter: {
         [CHAIN.ARBITRUM]: { start: '2024-05-29' },

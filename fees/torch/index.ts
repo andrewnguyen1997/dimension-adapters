@@ -27,7 +27,6 @@ export default {
     [CHAIN.TON]: {
       start: '2023-11-14',
       fetch: fetchFees,
-      runAtCurrTime: true,
     },
   },
 }

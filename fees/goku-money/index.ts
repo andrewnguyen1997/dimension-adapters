@@ -61,7 +61,6 @@ const fetchCollateralRedemptionRevenue = async (getLogs: any, balances: sdk.Bala
 
 const adapter: Adapter = {
   version: 2,
-  pullHourly: true,
   adapter: {
     [CHAIN.MANTA]: {
       fetch: async ({ getLogs }: FetchOptions) => {

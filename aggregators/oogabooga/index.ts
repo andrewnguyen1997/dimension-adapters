@@ -72,7 +72,6 @@ const methodology = {
 
 export default {
 	version: 2,
-	pullHourly: true,
 	methodology,
 	adapter: {
 		[CHAIN.BERACHAIN]: { fetch, start: "2025-01-27" },

@@ -33,12 +33,10 @@ const fetch = async (_: any, _1: any, options: FetchOptions): Promise<FetchResul
 
   const dailyFees = dayData.fee;
   const dailyRevenue = dayData.revenue;
-  const dailySupplySideRevenue = Number(dailyFees) - Number(dailyRevenue)
 
   return {
     dailyFees,
     dailyRevenue,
-    dailySupplySideRevenue,
     timestamp: options.startOfDay,
   };
 };

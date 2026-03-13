@@ -23,7 +23,6 @@ import { Balances } from "@defillama/sdk";
 const methodology = {
   Fees: 'Total incentive/reward amount were committed by Incentive Providers.',
   SupplySideRevenue: 'The amount of incentive/reward goes to Action Providers and Frontend Providers.',
-  Revenue: 'The amount of incentive/reward goes to Royco Protocol.',
   ProtocolRevenue: 'The amount of incentive/reward goes to Royco Protocol.',
 }
 
@@ -179,7 +178,6 @@ async function fetch(options: FetchOptions): Promise<FetchResultV2> {
 
   return {
     dailyFees,
-    dailyRevenue: dailyProtocolRevenue,
     dailyProtocolRevenue: dailyProtocolRevenue,
     dailySupplySideRevenue: dailySupplySideRevenue,
   }

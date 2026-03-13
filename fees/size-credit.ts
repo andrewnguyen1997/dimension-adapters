@@ -74,7 +74,6 @@ const methodology = "Swap fees are applied on every cash-for-credit trade, and f
 
 const adapter: Adapter = {
   version: 2,
-  pullHourly: true,
   adapter: {
     [CHAIN.BASE]: {
       fetch: (options: any) => fetch(options, CHAIN.BASE),

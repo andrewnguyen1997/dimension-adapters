@@ -1,26 +1,5 @@
-import * as sdk from "@defillama/sdk";
-import { SimpleAdapter } from "../adapters/types";
-import { CHAIN } from "../helpers/chains";
-import { getGraphDimensions2 } from "../helpers/getUniSubgraph";
 
-const v2Endpoints = {
-  [CHAIN.ARBITRUM]: sdk.graph.modifyEndpoint(
-    "3g83GYhbyHtjy581vpTmN1AP9cB9MjWMh5TiuNpvTU4R",
-  ),
-};
-
-const v2Graph = getGraphDimensions2({
-  graphUrls: v2Endpoints,
-  feesPercent: {
-    type: "volume",
-    UserFees: 0.25,
-    ProtocolRevenue: 0.1,
-    SupplySideRevenue: 0.15,
-    HoldersRevenue: 0,
-    Revenue: 0.1,
-    Fees: 0.25,
-  },
-});
+import adapter from '../dexs/zyberswap-v2'
 
 const methodology = {
   UserFees: "User pays 0.25% fees on each swap.",
@@ -31,16 +10,5 @@ const methodology = {
   SupplySideRevenue: "All user fees are distributed among LPs.",
   HoldersRevenue: "Stakers receive WETH a part of protocol revenue.",
 };
-
-const adapter: SimpleAdapter = {
-  version: 2,
-  methodology,
-  adapter: {
-    [CHAIN.ARBITRUM]: {
-      fetch: v2Graph,
-      start: '2023-01-23',
-    },
-  },
-};
-
-export default adapter;
+adapter.methodology = methodology;
+export default adapter

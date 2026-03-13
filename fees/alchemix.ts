@@ -1,99 +1,85 @@
 import type { FetchOptions, } from "../adapters/types";
 import { Adapter } from "../adapters/types";
 import { CHAIN } from "../helpers/chains";
-import { METRIC } from "../helpers/metrics";
-import { formatAddress } from "../utils/utils";
+import { getEnv } from "../helpers/env";
+const axios = require('axios');
 
-const chainConfigs: Record<string, any> = {
-  [CHAIN.ETHEREUM]: {
-    alchemists: [
-      '0x5C6374a2ac4EBC38DeA0Fc1F8716e5Ea1AdD94dd', // alUSD
-      '0x062Bf725dC4cDF947aa79Ca2aaCCD4F385b13b5c', // alETH
-    ],
-    start: '2022-02-25',
-  },
-  [CHAIN.ARBITRUM]: {
-    alchemists: [
-      '0xb46eE2E4165F629b4aBCE04B7Eb4237f951AC66F', // alUSD
-      '0x654e16a0b161b150F5d1C8a5ba6E7A7B7760703A', // alETH
-    ],
-    customAssets: {
-      [formatAddress('0x248a431116c6f6FCD5Fe1097d16d0597E24100f5')]: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
-    },
-    start: '2023-07-03',
-  },
-  [CHAIN.OPTIMISM]: {
-    alchemists: [
-      '0x10294d57A419C8eb78C648372c5bAA27fD1484af', // alUSD
-      '0xe04Bb5B4de60FA2fBa69a93adE13A8B3B569d5B4', // alETH
-    ],
-    customAssets: {
-      [formatAddress('0x0A86aDbF58424EE2e304b395aF0697E850730eCD')]: '0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1',
-    },
-    start: '2022-09-17',
-  },
+type IRecipient = {
+  [chain: string]: string;
+};
+
+type IRes = {
+  to: string,
+  date: string,
+  token: string,
+  category: string,
+  usdValue: string
+  tokenAmount: string
 }
 
-const HarvestEvent = 'event Harvest(address indexed yieldToken, uint256 minimumAmountOut, uint256 totalHarvested, uint256 credit)';
+const pinataApiKey: string = getEnv('ALCHEMIX_KEY')
+const pinataApiSecret: string = getEnv('ALCHEMIX_SECRET')
+const ipfs: string = 'https://ipfs.imimim.info/ipfs/'
 
-const fetch = async (options: FetchOptions) => {
-  const dailyFees = options.createBalances();
-  const dailyRevenue = options.createBalances();
-  const dailySupplySideRevenue = options.createBalances();
+const CONFIG: IRecipient = {
+  ethereum: '0x8392..e225',
+  optimism: '0xC224..A94a',
+  arbitrum: '0x7e10..A043'
+}
+
+async function getPinataHash(pinataFileName: string): Promise<string> {
+  const requestHeaders = {
+    "Content-Type": "application/json",
+    "pinata_api_key": pinataApiKey,
+    "pinata_secret_api_key": pinataApiSecret
+};
+
+  const findFileString1 = "https://api.pinata.cloud/data/pinList?includeCount=false&metadata[name]=";
+  const findFileString2 = "&status=pinned&pageLimit=1";
+  const findFileUrl = findFileString1 + pinataFileName + findFileString2;
   
-  const harvestLogs = await options.getLogs({
-    targets: chainConfigs[options.chain].alchemists,
-    eventAbi: HarvestEvent,
-    flatten: true,
-  })
-  for (const log of harvestLogs) {
-    const _token = formatAddress(log.yieldToken);
-    const token = chainConfigs[options.chain].customAssets && chainConfigs[options.chain].customAssets[_token] ? chainConfigs[options.chain].customAssets[_token] : _token
-    const totalYield = Number(log.totalHarvested);
+  const { data } =  await axios.get(findFileUrl, { headers: requestHeaders });
+  return data.rows[0].ipfs_pin_hash;
+}
 
-    dailyFees.add(token, totalYield, METRIC.ASSETS_YIELDS);
-    dailyRevenue.add(token, totalYield * 0.1, 'Yields To Protocol');
-    dailySupplySideRevenue.add(token, totalYield * 0.9, 'Yields To Self-Repay Loans');
-  }
+const timestampToDate = (timestamp: number): string => {
+  const date = new Date(timestamp * 1000);
+  return date.toISOString().split('T')[0];
+};
+
+const fetch = async (timestamp: number, _: any, { chain}: FetchOptions) => {
+  const recipient = CONFIG[chain]
+  const apiDate = timestampToDate(timestamp)
+
+  const pinataHash = await getPinataHash('den_revenue.json')
+  const { data } = await axios.get(ipfs + pinataHash)
+
+  const dataAtApiDate: IRes [] = data.filter((item: any) => item.date === apiDate && item.to === recipient);
   
-  return {
-    dailyFees,
-    dailyRevenue,
-    dailyProtocolRevenue: dailyRevenue,
-    dailySupplySideRevenue,
-    dailyHoldersRevenue: 0, // no revenue share to ALCX
-  }
-}
+  const totalFeesUsdValue = dataAtApiDate.reduce((sum, item) => {
+    const usdValue = parseFloat(item.usdValue);
+    return sum +  usdValue;
+  }, 0);
 
-const methodology = {
-  Fees: "Alchemix generates revenue from various lending and yield optimization activities across its protocol.",
-  Revenue: "Revenue share from 10% yield collected.",
-  SupplySideRevenue: "There are 90% yield are distibuted to users/borrowers.",
-  ProtocolRevenue: "Revenue share from 10% yield collected.",
-  HoldersRevenue: "No revenue share to ALCX token holders.",
-}
-
-const breakdownMethodology = {
-  Fees: {
-    [METRIC.ASSETS_YIELDS]: "Alchemix generates revenue from various lending and yield optimization activities across its protocol.",
-  },
-  Revenue: {
-    'Yields To Protocol': 'Share of 10% all yields.',
-  },
-  SupplySideRevenue: {
-    'Yields To Self-Repay Loans': 'Share of 90% all yields to borrowers for self-repay loans.',
-  },
-  ProtocolRevenue: {
-    'Yields To Protocol': 'Share of 10% all yields.',
-  },
+  return { timestamp, dailyFees: totalFeesUsdValue, dailyRevenue: totalFeesUsdValue }
 }
 
 const adapter: Adapter = {
-  version: 2,
-  fetch,
-  adapter: chainConfigs,
-  methodology,
-  breakdownMethodology,
+  version: 1,
+  adapter: {
+    [CHAIN.ETHEREUM]: { 
+      fetch,
+      start: '2021-02-28'
+    },
+    [CHAIN.ARBITRUM]: {
+      fetch,
+      start: '2021-02-28'
+    },
+    [CHAIN.OPTIMISM]: {
+      fetch,
+      start: '2021-02-28'
+    }
+  }
 }
 
 export default adapter;

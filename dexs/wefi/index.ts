@@ -24,7 +24,6 @@ const fetchVolume: FetchV2 = async (options: FetchOptions) => {
 }
 const adapter: SimpleAdapter = {
   version: 2,
-  pullHourly: true,
   adapter: {
     [CHAIN.LINEA]: {
       fetch: fetchVolume,

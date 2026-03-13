@@ -1,20 +1,16 @@
 import { Dependencies, FetchOptions, SimpleAdapter } from "../../adapters/types";
 import { CHAIN } from "../../helpers/chains";
 import { getSolanaReceived } from "../../helpers/token";
-import { METRIC } from "../../helpers/metrics";
 
 const FEE_WALLET = "Bkfx4XwD9VuztHyimbKyte2zkv78eBRHyeq4CvG6RFdB";
 
-const fetch = async (options: FetchOptions) => {
-  const tempBalances = options.createBalances();
+const fetch = async (_: any, _1: any, options: FetchOptions) => {
+  const dailyFees = options.createBalances();
   await getSolanaReceived({
     options,
-    balances: tempBalances,
+    balances: dailyFees,
     target: FEE_WALLET,
   });
-
-  const dailyFees = options.createBalances();
-  dailyFees.addBalances(tempBalances, METRIC.TRADING_FEES);
 
   return {
     dailyFees,
@@ -24,15 +20,8 @@ const fetch = async (options: FetchOptions) => {
   };
 };
 
-const breakdownMethodology = {
-  Fees: {
-    [METRIC.TRADING_FEES]: 'Fees charged by the trading bot for executing swaps on behalf of users',
-  },
-};
-
 const adapter: SimpleAdapter = {
-  version: 2,
-  pullHourly: true,
+  version: 1,
   dependencies: [Dependencies.ALLIUM],
   fetch,
   chains: [CHAIN.SOLANA],
@@ -42,7 +31,6 @@ const adapter: SimpleAdapter = {
     Revenue: "All collected fees are protocol revenue.",
     ProtocolRevenue: "100% fees goes to the protocol.",
   },
-  breakdownMethodology,
 };
 
 export default adapter;

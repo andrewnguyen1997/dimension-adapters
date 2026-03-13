@@ -55,7 +55,7 @@ const adapter: Adapter = {
     version: 1,
     fetch,
     dependencies: [Dependencies.DUNE],
-    chains: [CHAIN.ETHEREUM, CHAIN.UNICHAIN, CHAIN.BSC, CHAIN.MONAD],
+    chains: [CHAIN.ETHEREUM, CHAIN.UNICHAIN, CHAIN.BSC],
     start: '2025-06-05',
     methodology,
     prefetch,

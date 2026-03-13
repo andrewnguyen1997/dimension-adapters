@@ -80,7 +80,6 @@ const adapter: SimpleAdapter = {
       { fetch, start: config.start }
     ])
   ),
-  pullHourly: true,
   version: 2
 };
 

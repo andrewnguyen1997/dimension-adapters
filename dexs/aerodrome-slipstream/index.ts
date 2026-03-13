@@ -5,6 +5,7 @@ import { addOneToken } from '../../helpers/prices';
 import { ethers } from "ethers";
 import PromisePool from "@supercharge/promise-pool";
 import { handleBribeToken } from "../aerodrome/utils";
+import { concat } from 'ethers';
 
 const CONFIG = {
   factories: [
@@ -67,7 +68,7 @@ const getBribes = async (fetchOptions: FetchOptions): Promise<{ dailyBribesReven
   return { dailyBribesRevenue }
 }
 
-const fetch = async (fetchOptions: FetchOptions): Promise<FetchResult> => {
+const fetch = async (_: any, _1: any, fetchOptions: FetchOptions): Promise<FetchResult> => {
   const { api, createBalances, getToBlock, getFromBlock, chain, getLogs } = fetchOptions
   const dailyVolume = createBalances()
   const dailyFees = createBalances()
@@ -102,7 +103,7 @@ const fetch = async (fetchOptions: FetchOptions): Promise<FetchResult> => {
     startBlock += blockStep
   }
 
-  let errorFound: any = false
+  let errorFound = false
 
 
   await PromisePool
@@ -146,8 +147,7 @@ const fetch = async (fetchOptions: FetchOptions): Promise<FetchResult> => {
 }
 
 const adapters: SimpleAdapter = {
-  version: 2,
-  pullHourly: true,
+  version: 1,
   adapter: {
     [CHAIN.BASE]: {
       fetch: fetch as any,

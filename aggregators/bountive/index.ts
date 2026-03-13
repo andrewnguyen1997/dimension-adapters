@@ -1,5 +1,5 @@
 import fetchURL from "../../utils/fetchURL";
-import { FetchOptions, SimpleAdapter } from "../../adapters/types";
+import { FetchResultV2, SimpleAdapter } from "../../adapters/types";
 import { CHAIN } from "../../helpers/chains";
 
 const URL = 'https://api.bountive.fi/metrics/volume/';
@@ -9,7 +9,7 @@ interface IAPIResponse {
     dailyVolume: string;
 }
 
-const fetch = async ({ endTimestamp, startTimestamp }: FetchOptions) => {
+const fetch = async ({ endTimestamp, startTimestamp }): Promise<FetchResultV2> => {
     const { dailyVolume }: IAPIResponse = await fetchURL(
       `${URL}${startTimestamp * 1000}/${endTimestamp * 1000}`,
     );

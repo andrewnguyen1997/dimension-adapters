@@ -26,7 +26,6 @@ const getFees = async (options: FetchOptions) => {
 
 const adapter: Adapter = {
   version: 2,
-  pullHourly: true,
   adapter: {
     [OPTIMISM]: {
       fetch: getFees,

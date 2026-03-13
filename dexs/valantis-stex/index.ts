@@ -69,7 +69,6 @@ const methodology = {
 
 const adapter : SimpleAdapter = {
     version: 2,
-    pullHourly: true,
     fetch,
     chains: [CHAIN.HYPERLIQUID],
     start: "2025-03-27",

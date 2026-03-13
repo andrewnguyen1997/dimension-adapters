@@ -38,5 +38,4 @@ export default {
     Revenue: "All trading fees from users.",
   },
   version: 2,
-  pullHourly: true,
 } as Adapter

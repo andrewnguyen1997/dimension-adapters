@@ -17,7 +17,6 @@ const fetch = async ({ getLogs, createBalances }: FetchOptions) => {
 
 const adapter: SimpleAdapter = {
   version: 2,
-  pullHourly: true,
   adapter: {
     [CHAIN.ONUS]: {
       fetch,

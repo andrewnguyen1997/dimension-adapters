@@ -27,7 +27,6 @@ const fetch = async (_: any, _b: any, options: any): Promise<FetchResult> => {
 };
 
 const adapter: SimpleAdapter = {
-  version: 1,
   adapter: {
     [CHAIN.HYPERLIQUID]: {
       fetch,

@@ -23,8 +23,8 @@ const fetch = async (options: FetchOptions) => {
       // Use revenue_value (in wei) instead of revenue_eth
       const revenueWei = dayData.revenue_value || (dayData.revenue_eth * 1e18).toString();
       if (revenueWei && revenueWei !== "0") {
-        dailyFees.add(ADDRESSES.null, revenueWei, 'sequencer fees');
-        dailyRevenue.add(ADDRESSES.null, revenueWei, 'sequencer fees');
+        dailyFees.add(ADDRESSES.null, revenueWei);
+        dailyRevenue.add(ADDRESSES.null, revenueWei);
       }
     }
   }
@@ -35,15 +35,6 @@ const fetch = async (options: FetchOptions) => {
   };
 };
 
-const breakdownMethodology = {
-  Fees: {
-    'sequencer fees': 'ETH revenue collected by the Bob L2 sequencer from transaction processing, sourced from Dune Analytics.',
-  },
-  Revenue: {
-    'sequencer fees': 'ETH revenue collected by the Bob L2 sequencer from transaction processing, sourced from Dune Analytics.',
-  },
-};
-
 const adapter: SimpleAdapter = {
   version: 2,
   fetch,
@@ -51,7 +42,6 @@ const adapter: SimpleAdapter = {
   start: "2024-04-12",
   dependencies: [Dependencies.DUNE],
   isExpensiveAdapter: true,
-  breakdownMethodology,
 };
 
 export default adapter;

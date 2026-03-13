@@ -13,7 +13,7 @@ const KAIROS_AUCTION_BIDDER_ADDRESS = '0x2b38a73dd32a2eafe849825a4b515ae5187eda4
 
 const AUCTIONRESOLVED_EVENT_ABI = 'event AuctionResolved(bool indexed isMultiBidAuction, uint64 round, address indexed firstPriceBidder, address indexed firstPriceExpressLaneController, uint256 firstPriceAmount, uint256 price, uint64 roundStartTimestamp, uint64 roundEndTimestamp)'
 
-const fetch = async (options: FetchOptions) => {
+const fetch = async (_a: any, _b: any, options: FetchOptions) => {
   const dailyFees = options.createBalances();
   const dailyCost = options.createBalances();
 
@@ -41,8 +41,7 @@ const fetch = async (options: FetchOptions) => {
 
 // version 1 as it's using allium query
 const adapter: SimpleAdapter = {
-  version: 2,
-  pullHourly: true,
+  version: 1,
   fetch,
   chains: [CHAIN.ARBITRUM],
   start: '2025-04-16',

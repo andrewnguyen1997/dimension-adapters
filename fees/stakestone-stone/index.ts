@@ -52,17 +52,13 @@ const fetch = async (options: FetchOptions) => {
   dailyFees.addGasToken(dailyEthRewards);
 
   return {
-    dailyFees,
-    dailySupplySideRevenue: dailyFees,
-    dailyRevenue: 0
+    dailyFees
   }
 }
 
 const adapter: SimpleAdapter = {
   methodology: {
-    Fees: "Staking rewards earned by all staked ETH",
-    SupplySideRevenue: "All the staking rewards go to stakers",
-    Revenue: "The protocol doesn't keep any fees"
+    dailyFees: "Staking rewards earned by all staked ETH",
   },
   version: 2,
   adapter: {

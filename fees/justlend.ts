@@ -29,10 +29,8 @@ const fetch = async (timestamp: number, _: ChainBlocks, { createBalances, fromTi
   const dailyProtocolFees = createBalances();
   const dailyProtocolRevenue = createBalances();
   await getDailyProtocolFees(context, { dailyProtocolFees, dailyProtocolRevenue, });
-  const dailySupplySideRevenue = createBalances();
-  const tempBalance = dailyProtocolFees.clone();
-  tempBalance.subtract(dailyProtocolRevenue);
-  dailySupplySideRevenue.addBalances(tempBalance, 'Borrow Interest');
+  const dailySupplySideRevenue = dailyProtocolFees.clone();
+  dailySupplySideRevenue.subtract(dailyProtocolRevenue);
   return {
     timestamp,
     dailyFees: dailyProtocolFees,
@@ -156,8 +154,8 @@ const getDailyProtocolFees = async ({
   raw_data.forEach((log: IAccrueInterestLog) => {
     const marketIndex = markets.findIndex((e: string) => e.toLowerCase() === log.market.toLowerCase());
     const underlying = underlyings[marketIndex].toLowerCase();
-    dailyProtocolFees.add(underlying, Number(log.interestAccumulated), 'Borrow Interest');
-    dailyProtocolRevenue.add(underlying, Number(log.interestAccumulated) * Number(reserveFactors[marketIndex]) / 1e18, 'Protocol Reserve Share');
+    dailyProtocolFees.add(underlying, Number(log.interestAccumulated));
+    dailyProtocolRevenue.add(underlying, Number(log.interestAccumulated) * Number(reserveFactors[marketIndex]) / 1e18);
   });
 };
 
@@ -171,25 +169,11 @@ const adapter: Adapter = {
     },
   },
   methodology: {
-    Fees: "Total interest paid by borrowers across all lending markets",
-    Revenue: "Protocol's share of interest based on each market's reserve factor",
-    ProtocolRevenue: "Protocol's share of interest based on each market's reserve factor",
+    Fees: "Total interest paid by borrowers",
+    Revenue: "Protocol's share of interest treasury",
+    ProtocolRevenue: "Protocol's share of interest into treasury",
     HoldersRevenue: "No revenue distributed to JST holders",
-    SupplySideRevenue: "Interest paid to lenders in liquidity pools (total interest minus protocol reserve)",
-  },
-  breakdownMethodology: {
-    Fees: {
-      'Borrow Interest': 'Interest accrued from borrowers across all lending markets, calculated from AccrueInterest events',
-    },
-    Revenue: {
-      'Protocol Reserve Share': 'Portion of borrow interest kept by the protocol based on each market\'s reserve factor',
-    },
-    ProtocolRevenue: {
-      'Protocol Reserve Share': 'Portion of borrow interest kept by the protocol based on each market\'s reserve factor',
-    },
-    SupplySideRevenue: {
-      'Borrow Interest': 'Borrow interest distributed to lenders (total interest minus protocol reserve share)',
-    },
+    SupplySideRevenue: "Interest paid to lenders in liquidity pools"
   }
 };
 

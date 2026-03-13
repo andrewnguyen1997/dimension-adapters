@@ -12,7 +12,6 @@ const graph = (_chain: Chain): any => {
 
 
 const adapter: Adapter = {
-  pullHourly: true,
   adapter: {
     [CHAIN.ETHEREUM]: {
       fetch: graph(CHAIN.ETHEREUM),

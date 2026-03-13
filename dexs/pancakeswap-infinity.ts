@@ -10,7 +10,6 @@ const config: any = {
   [CHAIN.BASE]: { clPoolManager: '0xa0ffb9c1ce1fe56963b0321b32e7a0302114058b', fromBlock: 30544106, start: '2025-05-23' },
 }
 const adapter: SimpleAdapter = {
-  pullHourly: true,
   version: 2,
   adapter: {}
 }
@@ -26,7 +25,7 @@ async function fetch({ getLogs, createBalances, chain, fromApi, toApi }: FetchOp
   const logs = await getLogs({
     target: clPoolManager,
     fromBlock,
-    cacheInCloud: true,
+    skipIndexer: true,
     eventAbi: 'event Initialize(bytes32 indexed id, address indexed currency0, address indexed currency1, address hooks, uint24 fee, bytes32 parameters, uint160 sqrtPriceX96, int24 tick)',
   })
 

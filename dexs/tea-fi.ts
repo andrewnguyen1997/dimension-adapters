@@ -73,7 +73,6 @@ const fetch: any = async (options: FetchOptions) => {
 
 export default {
   version: 2,
-  pullHourly: true,
   methodology,
   fetch,
   adapter: {

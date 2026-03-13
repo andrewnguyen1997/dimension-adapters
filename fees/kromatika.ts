@@ -59,7 +59,6 @@ const fetch = async (options: FetchOptions) => {
 
 const adapter: SimpleAdapter = {
   version: 2,
-  pullHourly: true,
   adapter: {
     [CHAIN.OPTIMISM]: {
       fetch,
@@ -85,7 +84,7 @@ const adapter: SimpleAdapter = {
     Revenue: "Portion of fees forwarded to the protocol fee address.",
     ProtocolRevenue: "Service fees minus the monitor reimbursement share.",
     SupplySideRevenue: "Share of service fees paid to execution monitors for covering gas costs.",
-    HoldersRevenue: "No revenue share to KROM token holders.",
+    HoldersRevenue: "No revneue share to KROM token holders.",
   },
   breakdownMethodology:{
     Fees: {

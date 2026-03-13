@@ -13,8 +13,7 @@ const skateChainIds: Record<string, number> = {
     [CHAIN.PLUME]: 98866,
     [CHAIN.MANTLE]: 5000,
     [CHAIN.SUI]: 1001,
-    [CHAIN.MONAD]: 143,
-    [CHAIN.MEGAETH]: 4326
+    [CHAIN.MONAD]: 143
 }
 
 const skateDataApi = "https://api.skatechain.org/amm-data/pools/stats";
@@ -66,8 +65,7 @@ const adapter: SimpleAdapter = {
         [CHAIN.PLUME]: { start: '2025-06-02', },
         [CHAIN.MANTLE]: { start: '2025-05-28', },
         [CHAIN.SUI]: { start: '2025-06-22', },
-        [CHAIN.MONAD]: { start: '2025-11-25', },
-        [CHAIN.MEGAETH]: { start: '2026-02-18', }
+        [CHAIN.MONAD]: { start: '2025-11-25', }
     },
 }
 

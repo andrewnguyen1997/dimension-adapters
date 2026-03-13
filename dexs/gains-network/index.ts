@@ -65,7 +65,6 @@ const adapter: SimpleAdapter = {
       fetch: fetchApechain,
       start: "2024-11-19",
     },
-    [CHAIN.MEGAETH]: { fetch, start: "2026-02-09" },
   },
   prefetch,
   isExpensiveAdapter: true,

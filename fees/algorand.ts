@@ -8,18 +8,16 @@ import { httpGet } from "../utils/fetchURL";
  */
 const fetch = async (options: FetchOptions) => {
   const dailyFees = options.createBalances();
-  const dailyRevenue = options.createBalances();
-  const dailyHoldersRevenue = options.createBalances();
 
   // Convert to ISO format for the API
   const startDate = new Date(options.startTimestamp * 1000).toISOString();
   const endDate = new Date(options.endTimestamp * 1000).toISOString();
-
+  
   let totalFees = 0;
   let nextToken: string | undefined = undefined;
   let requestCount = 0;
   const MAX_REQUESTS = 100; // Safety limit to prevent infinite loops
-
+  
   // Query transactions from AlgoNode public indexer (more reliable)
   do {
     let url = `https://mainnet-idx.algonode.cloud/v2/transactions?after-time=${startDate}&before-time=${endDate}&limit=1000`;
@@ -39,7 +37,7 @@ const fetch = async (options: FetchOptions) => {
 
     nextToken = response['next-token'];
     requestCount++;
-
+    
     // Safety checks
     if (!nextToken || txns.length === 0 || requestCount >= MAX_REQUESTS) {
       break;
@@ -47,41 +45,31 @@ const fetch = async (options: FetchOptions) => {
   } while (nextToken);
 
   // Convert from microAlgos to ALGO (1 ALGO = 1,000,000 microAlgos)
-  const feeAmount = totalFees / 1e6;
-  dailyFees.addCGToken('algorand', feeAmount, 'Transaction Fees');
-  dailyRevenue.addCGToken('algorand', feeAmount, 'Transaction Fees');
-  dailyHoldersRevenue.addCGToken('algorand', feeAmount, 'Transaction Fees');
+  dailyFees.addCGToken('algorand', totalFees / 1e6);
 
   return {
     dailyFees,
-    dailyRevenue,
-    dailyHoldersRevenue,
+    dailyRevenue: dailyFees,
+    dailyHoldersRevenue: dailyFees, // All transaction fees on Algorand are burned
   };
 };
 
 const methodology = {
   Fees: "All transaction fees paid by users on the Algorand blockchain",
   Revenue: "All transaction fees on Algorand are burned, effectively benefiting all ALGO holders through reduced supply",
+  HoldersRevenue: "All transaction fees on Algorand are burned, effectively benefiting all ALGO holders through reduced supply"
 };
 
 const adapter: SimpleAdapter = {
   version: 2,
-  fetch,
-  chains: [CHAIN.ALGORAND],
-  start: '2019-06-11', // Algorand mainnet launch date
-  protocolType: ProtocolType.CHAIN,
-  methodology,
-  breakdownMethodology: {
-    Fees: {
-      'Transaction Fees': 'All transaction fees paid by users on the Algorand blockchain',
-    },
-    Revenue: {
-      'Transaction Fees': 'All transaction fees on Algorand are burned, effectively benefiting all ALGO holders through reduced supply',
-    },
-    HoldersRevenue: {
-      'Transaction Fees': 'All transaction fees on Algorand are burned, effectively benefiting all ALGO holders through reduced supply',
+  adapter: {
+    [CHAIN.ALGORAND]: {
+      fetch,
+      start: '2019-06-11', // Algorand mainnet launch date
     },
   },
+  protocolType: ProtocolType.CHAIN,
+  methodology,
 };
 
 export default adapter;

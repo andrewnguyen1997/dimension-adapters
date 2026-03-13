@@ -54,7 +54,7 @@ const prefetch = async (options: FetchOptions) => {
 
 type PrefetchResults = Awaited<ReturnType<typeof prefetch>>;
 
-const fetch = async (options: FetchOptions) => {
+const fetch = async (_a: any, _b: any, options: FetchOptions) => {
   const fetched = options.preFetchedResults as PrefetchResults;
   const dailyBridgeVolume = options.createBalances();
 
@@ -68,8 +68,6 @@ const fetch = async (options: FetchOptions) => {
 };
 
 const adapter: SimpleAdapter = {
-  version: 2,
-  pullHourly: true,
   chains: [
     CHAIN.BASE,
     CHAIN.CARDANO,

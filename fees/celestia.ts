@@ -1,4 +1,4 @@
-import { FetchOptions, ProtocolType, SimpleAdapter } from "../adapters/types";
+import { ChainBlocks, FetchOptions, ProtocolType, SimpleAdapter } from "../adapters/types";
 import { CHAIN } from "../helpers/chains";
 import { httpGet } from "../utils/fetchURL";
 
@@ -8,23 +8,25 @@ interface Fee {
   time: string
 }
 
-const fetch = async (_a: any, _b: any, options: FetchOptions) => {
+const fetchFees = async (_t: number, _b: ChainBlocks, options: FetchOptions)  => {
   const dailyFees = options.createBalances();
   const res: Fee[] = await httpGet(url(options.fromTimestamp, options.toTimestamp))
-
   res.forEach(fee => {
-    dailyFees.addCGToken('celestia', Number(fee.value) / 1e6)
+    dailyFees.addCGToken('celestia', Number(fee.value)/1e6)
   })
-  return { dailyFees }
+  return {
+    timestamp: options.startOfDay,
+    dailyFees,
+  }
 }
 
 const adapter: SimpleAdapter = {
-  chains: [CHAIN.CELESTIA],
-  fetch,
-  protocolType: ProtocolType.CHAIN,
-  methodology: {
-    Fees: 'Transaction fees paid in TIA',
+  adapter: {
+    [CHAIN.CELESTIA]: {
+      fetch: fetchFees,
+          },
   },
+  protocolType: ProtocolType.CHAIN,
 }
 
 export default adapter;

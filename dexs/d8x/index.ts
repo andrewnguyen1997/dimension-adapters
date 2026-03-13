@@ -50,7 +50,6 @@ const fetch = async ({ getLogs, chain, }: FetchOptions): Promise<FetchResultVolu
 
 const adapter: Adapter = {
   version: 2,
-  pullHourly: true,
   adapter: {
     [CHAIN.ARBITRUM]: {
       fetch, start: "2023-03-26",

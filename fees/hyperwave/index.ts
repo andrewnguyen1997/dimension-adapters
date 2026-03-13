@@ -37,7 +37,7 @@ const adapter: Adapter = {
         ProtocolRevenue:
             "Revenue share for protocol, currently no revenue share for Hyperwave protocol.",
         SupplySideRevenue:
-            "Currently, 100% of yields paid to hwHLP and hwHYPE holders, suppliers.",
+            "Currewntly, 100% of yields paid to hwHLP and hwHYPE holders, suppliers.",
     },
 };
 

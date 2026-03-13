@@ -57,7 +57,6 @@ const fetch = async (options: FetchOptions) => {
 
 export default {
     version: 2,
-    pullHourly: true,
     adapter: {
         [CHAIN.BASE]: {
             fetch,

@@ -147,10 +147,16 @@ const adapter: SimpleAdapter = {
   },
   breakdownMethodology: {
     Fees: {
-      [METRIC.BORROW_INTEREST]: 'Interest accrued daily on all outstanding borrows across Compound V3 markets, calculated using current borrow rates and utilization.',
+      [METRIC.BORROW_INTEREST]: 'Total borrow interest paid by borrowers.',
+    },
+    Revenue: {
+      [METRIC.BORROW_INTEREST]: 'No borrow interest to Compound treasury.',
+    },
+    ProtocolRevenue: {
+      [METRIC.BORROW_INTEREST]: 'No borrow interest to Compound treasury.',
     },
     SupplySideRevenue: {
-      [METRIC.BORROW_INTEREST]: 'All borrow interest distributed to lenders who supply capital to Compound V3 markets.',
+      [METRIC.BORROW_INTEREST]: 'All borrow interest paid to lenders.',
     },
   }
 };

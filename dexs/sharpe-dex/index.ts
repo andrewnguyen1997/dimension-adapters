@@ -5,6 +5,7 @@ import fetchURL from "../../utils/fetchURL";
 
 const fetch = async () => {
 
+  const data:any = await fetchURL('https://base-api.sharpe.ai/api/dexVolume')
   const dailyData:any = await fetchURL('https://base-api.sharpe.ai/api/dailySharpeDexVolume')
   
   return {
@@ -18,7 +19,6 @@ const adapter: SimpleAdapter = {
   adapter: {
     [CHAIN.ETHEREUM]: {
       fetch,
-      runAtCurrTime: true,
       start: '2024-04-01',
     },
   },

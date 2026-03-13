@@ -20,41 +20,23 @@ const apis: Record<string, string[]> = {
   [CHAIN.TON]: [API_TON],
 };
 
-const fetch = async ({ chain, createBalances }: FetchOptions) => {
-  const chainId = chainIds[chain];
-  const apiList = apis[chain];
+const fetch = async (options: FetchOptions) => {
+  const chainId = chainIds[options.chain];
+  const apiList = apis[options.chain];
 
-  const dailyFees = createBalances();
-  const dailyRevenue = createBalances();
+  let dailyFees = 0;
+  let dailyRevenue = 0;
 
   for (const api of apiList) {
     const data = await httpGet(`${api}/fees?chain_id=${chainId}`);
-    if (data.dailyFees) {
-      dailyFees.addUSDValue(data.dailyFees, "Bridge fees");
-    }
-    if (data.dailyRevenue) {
-      dailyRevenue.addUSDValue(data.dailyRevenue, "Bridge fees");
-    }
+    dailyFees += data.dailyFees || 0;
+    dailyRevenue += data.dailyRevenue || 0;
   }
 
   return {
     dailyFees,
     dailyRevenue,
   };
-};
-
-const methodology = {
-  Fees: "Fees paid by users for bridging assets cross-chain via BabyDoge Bridge",
-  Revenue: "Protocol fees retained by BabyDoge Bridge from bridging operations"
-};
-
-const breakdownMethodology = {
-  Fees: {
-    "Bridge fees": "Fees charged to users for cross-chain asset transfers via BabyDoge Bridge, including transfers via Axelar, Wormhole, and BSC-TON bridges"
-  },
-  Revenue: {
-    "Bridge fees": "Portion of bridge fees retained by the BabyDoge Bridge protocol"
-  }
 };
 
 const adapter: SimpleAdapter = {
@@ -67,8 +49,6 @@ const adapter: SimpleAdapter = {
     [CHAIN.TON]: { start: "2024-01-01" },
     [CHAIN.BASE]: { start: "2024-01-01" },
   },
-  methodology,
-  breakdownMethodology,
 };
 
 export default adapter;

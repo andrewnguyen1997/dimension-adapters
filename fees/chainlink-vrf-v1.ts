@@ -24,13 +24,15 @@ const address: TAddrress = {
   [CHAIN.POLYGON]: '0x3d2341ADb2D31f1c5530cDC622016af293177AE0'
 }
 
-const getTransactions = async (fromBlock: number, toBlock: number, api: ChainApi, getLogs: FetchOptions["getLogs"]): Promise<{ transactions: any[]; totalPayment: number }> => {
+const getTransactions = async (fromBlock: number, toBlock: number, api: ChainApi): Promise<{ transactions: any[]; totalPayment: number }> => {
   const target = address[api.chain];
   const TX_HASH_BATCH = 50;
   const MAX_PARALLEL = 3;
 
-  const logs = await getLogs({
+  const logs = await api.getLogs({
     target,
+    fromBlock,
+    toBlock,
     topics: [topics.topic0],
     eventAbi: eventAbis.randomnessRequest,
     entireLog: true
@@ -87,12 +89,12 @@ const getTransactions = async (fromBlock: number, toBlock: number, api: ChainApi
   return { transactions: allTransactions, totalPayment };
 };
 
-const fetch = async ({ getFromBlock, getToBlock, createBalances, api, getLogs, }: FetchOptions) => {
+const fetch = async (_: any, _1: any, { getFromBlock, getToBlock, createBalances, api }: FetchOptions) => {
   const [fromBlock, toBlock] = await Promise.all([getFromBlock(), getToBlock()])
   const dailyRevenue = createBalances()
   const dailyGas = createBalances()
   const dailyPayment = createBalances()
-  const { transactions, totalPayment } =  await getTransactions(fromBlock, toBlock, api, getLogs)
+  const { transactions, totalPayment } =  await getTransactions(fromBlock, toBlock, api)
 
   const dailyGasUsed = transactions.reduce((acc, tx) => {
     const gasUsed = Number(tx.gasUsed ?? 0);
@@ -109,8 +111,7 @@ const fetch = async ({ getFromBlock, getToBlock, createBalances, api, getLogs, }
 
 const adapter: SimpleAdapter = {
   allowNegativeValue: true, // Chainlink VRF nodes collect LINK fees and pay ETH gas to fulfill randomness.
-  version: 2,
-  pullHourly: true,
+  version: 1,
   adapter: {
     [CHAIN.ETHEREUM]: {
       fetch,

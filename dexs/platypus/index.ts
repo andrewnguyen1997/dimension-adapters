@@ -44,7 +44,6 @@ const fetch = async ({ api, getLogs, createBalances }: FetchOptions) => {
 
 const adapter: SimpleAdapter = {
     version: 2,
-    pullHourly: true,
     adapter: {
         [CHAIN.AVAX]: {
             fetch,

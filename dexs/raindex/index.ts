@@ -389,7 +389,6 @@ Object.keys(orderbooks).forEach(chain => {
 
 const adapter: SimpleAdapter = {
   version: 2,
-  pullHourly: true,
   adapter: volAdapter,
   methodology: {
     Volume: "Volume of trades"

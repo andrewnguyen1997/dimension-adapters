@@ -1,5 +1,4 @@
 import type { FetchOptions, SimpleAdapter } from "../../adapters/types";
-import { CHAIN } from "../../helpers/chains";
 import fetchURL from "../../utils/fetchURL";
 
 const api = 'https://api.deltatrade.ai/api/home/data'
@@ -15,11 +14,11 @@ async function fetch(_a: any, _b: any, options: FetchOptions) {
 
 const adapter: SimpleAdapter = {
   adapter: {
-    [CHAIN.NEAR]: {
+    near: {
       fetch,
       runAtCurrTime: true,
     },
-    [CHAIN.SOLANA]: {
+    solana: {
       fetch,
       runAtCurrTime: true,
     },

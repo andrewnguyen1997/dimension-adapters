@@ -1,6 +1,12 @@
 import { FetchOptions, FetchResultV2, SimpleAdapter } from "../adapters/types";
 import { CHAIN } from "../helpers/chains";
-import { METRIC } from "../helpers/metrics";
+
+const methodology = {
+  Fees: "Total rewards earned in EigenLayer.",
+  Revenue: "No revenue, all rewards earned by suppliers.",
+  SupplySideRevenue: "Total rewards are distributed to stakers and operators.",
+  ProtocolRevenue: "No revenue for EigenLayer.",
+}
 
 // EigenLayer calculates rewards off-chain and distributed to on-chain contracts weekly
 // we count daily fees by collect daily rewards were claimed by operators and stakers on RewardsCoordinator contract
@@ -22,7 +28,7 @@ const fetch = async (options: FetchOptions): Promise<FetchResultV2> => {
     eventAbi: ContractAbis.RewardsClaimedEvent,
   })
   for (const event of events) {
-    dailyFees.add(event.token, event.claimedAmount, METRIC.STAKING_REWARDS)
+    dailyFees.add(event.token, event.claimedAmount)
   }
 
   return {
@@ -33,25 +39,15 @@ const fetch = async (options: FetchOptions): Promise<FetchResultV2> => {
   }
 }
 
-const methodology = {
-  Fees: "Total rewards earned in EigenLayer.",
-  Revenue: "No revenue, all rewards earned by suppliers.",
-  SupplySideRevenue: "Total rewards are distributed to stakers and operators.",
-  ProtocolRevenue: "No revenue for EigenLayer.",
-}
-
 const adapter: SimpleAdapter = {
   version: 2,
-  pullHourly: true,
-  fetch,
-  chains: [CHAIN.ETHEREUM],
-  start: '2024-07-20',
-  methodology,
-  breakdownMethodology: {
-    Fees: {
-      [METRIC.STAKING_REWARDS]: "Rewards claimed on the RewardsCoordinator contract by EigenLayer stakers and operators.",
+  adapter: {
+    [CHAIN.ETHEREUM]: {
+      fetch: fetch,
+      start: '2024-07-20',
     },
   },
+  methodology,
 };
 
 export default adapter;

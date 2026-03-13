@@ -51,7 +51,6 @@ const collector: IContract = {
 
 const adapter: SimpleAdapter = {
   version: 2,
-  pullHourly: true,
   adapter: Object.keys(collector).reduce((acc, chain) => {
     return {
       ...acc,

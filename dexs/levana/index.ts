@@ -1,13 +1,12 @@
 import { FetchResultVolume, SimpleAdapter } from "../../adapters/types";
-import { CHAIN } from "../../helpers/chains";
 import { fetchMarketInfos, fetchVolume } from "./fetch";
 
 const adapter: SimpleAdapter = {
     // start times are factory instantiation
     adapter: {
-        [CHAIN.OSMOSIS]: {
+        osmosis: {
             fetch: async (timestamp: number): Promise<FetchResultVolume> => {
-                const marketInfos = await fetchMarketInfos(CHAIN.OSMOSIS);
+                const marketInfos = await fetchMarketInfos("osmosis");
                 const [dailyVolume,] = await Promise.all([
                     fetchVolume("daily", marketInfos, timestamp),
                 ]);
@@ -15,9 +14,9 @@ const adapter: SimpleAdapter = {
             },
             start: '2023-07-06'
         },
-        [CHAIN.SEI]: {
+        sei: {
             fetch: async (timestamp: number): Promise<FetchResultVolume> => {
-                const marketInfos = await fetchMarketInfos(CHAIN.SEI);
+                const marketInfos = await fetchMarketInfos("sei");
 
                 const [dailyVolume,] = await Promise.all([
                     fetchVolume("daily", marketInfos, timestamp),
@@ -27,9 +26,9 @@ const adapter: SimpleAdapter = {
             },
             start: '2023-08-06'
         },
-        [CHAIN.INJECTIVE]: {
+        injective: {
             fetch: async (timestamp: number): Promise<FetchResultVolume> => {
-                const marketInfos = await fetchMarketInfos(CHAIN.INJECTIVE);
+                const marketInfos = await fetchMarketInfos("injective");
 
                 const [dailyVolume,] = await Promise.all([
                     fetchVolume("daily", marketInfos, timestamp),
@@ -39,9 +38,9 @@ const adapter: SimpleAdapter = {
             },
             start: '2023-09-26'
         },
-        [CHAIN.NEUTRON]: {
+        neutron: {
             fetch: async (timestamp: number): Promise<FetchResultVolume> => {
-                const marketInfos = await fetchMarketInfos(CHAIN.NEUTRON);
+                const marketInfos = await fetchMarketInfos("neutron");
 
                 const [dailyVolume,] = await Promise.all([
                     fetchVolume("daily", marketInfos, timestamp),

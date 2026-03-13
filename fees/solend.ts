@@ -26,7 +26,7 @@ interface DailyStats {
 
 const methodology = {
   Fees: 'Interest and fees paid by borrowers and the liquidated',
-  ProtocolRevenue: 'The portion of the total fees going to the Solend DAO treasury'
+  ProtocolReveneue: 'The portion of the total fees going to the Solend DAO treasury'
 }
 
 const fetchSolendStats = async ({ endTimestamp }: FetchOptions) => {

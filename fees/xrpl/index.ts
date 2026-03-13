@@ -22,7 +22,7 @@ const fetch = async (_a: any, _b: any, options:FetchOptions) => {
 const adapter: SimpleAdapter = {
   version: 1,
   fetch,
-  chains: [CHAIN.RIPPLE],
+  chains: [CHAIN.XRPL],
   start: '2023-12-16',
   methodology: {
     Fees: 'Fees paid by users for transactions on the XRPL',

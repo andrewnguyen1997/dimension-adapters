@@ -15,7 +15,6 @@ const fetch = async ({ createBalances, getLogs, }: FetchOptions) => {
 
 const adapter: SimpleAdapter = {
   version: 2,
-  pullHourly: true,
   adapter: {
     [CHAIN.ETHEREUM]: {
       fetch: fetch,

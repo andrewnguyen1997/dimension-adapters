@@ -41,7 +41,6 @@ const fetch = async (options: FetchOptions) => {
 
 const adapter: Adapter = {
   version: 2,
-  pullHourly: true,
   adapter: {
     [CHAIN.OPTIMISM]: {
       fetch: fetch as any,

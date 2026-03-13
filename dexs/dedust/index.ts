@@ -78,7 +78,6 @@ const adapter: SimpleAdapter = {
   adapter: {
     [CHAIN.TON]: {
       fetch,
-      runAtCurrTime: true,
       start: '2023-04-19',
     },
   },

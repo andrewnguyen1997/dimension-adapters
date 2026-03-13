@@ -1,10 +1,8 @@
+import adapter from "../../dexs/velodrome";
 import { CHAIN } from "../../helpers/chains";
-import { getAdapterFromHelpers } from "../../factory/registry";
-
-const { adapter } = getAdapterFromHelpers('dexs', "velodrome") as any
 
 let _fetch = adapter.adapter[CHAIN.OPTIMISM].fetch;
-const fetch = async (options: any) => {
+const fetch = async (options) => {
   let res = await (_fetch as any)(options)
   return {
     dailyFees: res.dailyFees,
@@ -14,7 +12,6 @@ const fetch = async (options: any) => {
 }
 
 export default {
-  pullHourly: true,
   version: 2,
   adapter: {
     [CHAIN.OPTIMISM]: {

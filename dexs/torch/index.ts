@@ -1,8 +1,7 @@
 import fetchURL from '../../utils/fetchURL'
 import { FetchOptions, SimpleAdapter } from '../../adapters/types'
-import { CHAIN } from '../../helpers/chains'
 
-const fetch = async () => {
+const fetch = async (options: FetchOptions) => {
   const dailyVolumeResult = await fetchURL(
     'https://api.torch.finance/stats/daily-volume',
   )
@@ -14,9 +13,8 @@ const fetch = async () => {
 
 const adapter: SimpleAdapter = {
   adapter: {
-    [CHAIN.TON]: {
+    ton: {
       fetch,
-      runAtCurrTime: true,
       start: '2024-09-02',
     },
   },

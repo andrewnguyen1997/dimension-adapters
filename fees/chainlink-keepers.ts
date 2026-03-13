@@ -76,16 +76,17 @@ const addresses: TAddress = {
 const getTransactions = async (
   fromBlock: number,
   toBlock: number,
-  api: ChainApi,
-  getLogs: FetchOptions["getLogs"]
+  api: ChainApi
 ): Promise<{ transactions: any[]; totalPayment: number }> => {
   const target = addresses[api.chain].address;
   const TX_HASH_BATCH = 50;
   const MAX_PARALLEL = 3;
 
-  const logs = await getLogs({
+  const logs = await api.getLogs({
     target,
-    topics: [topics.upkeepPerformed, null, topics.success] as any[],
+    fromBlock,
+    toBlock,
+    topics: [topics.upkeepPerformed, null, topics.success],
     eventAbi: eventAbis.upkeepPerformed,
     onlyArgs: false,
   });
@@ -143,13 +144,13 @@ const getTransactions = async (
   return { transactions: allTransactions, totalPayment };
 };
 
-const fetch = async ({ createBalances, api, fromApi, toApi, getLogs }: FetchOptions) => {
+const fetch = async ({ createBalances, api, fromApi, toApi }: FetchOptions) => {
   const fromBlock = Number(fromApi.block)
   const toBlock = Number(toApi.block)
   const dailyRevenue = createBalances();
   const dailyGas = createBalances();
   const dailyPayment = createBalances();
-  const { transactions, totalPayment } = await getTransactions(fromBlock, toBlock, api, getLogs);
+  const { transactions, totalPayment } = await getTransactions(fromBlock, toBlock, api);
 
   const dailyGasUsed = transactions.reduce((acc, tx) => {
     const gasUsed = Number(tx.gasUsed ?? 0);
@@ -168,7 +169,6 @@ const fetch = async ({ createBalances, api, fromApi, toApi, getLogs }: FetchOpti
 
 const adapter: SimpleAdapter = {
   version: 2,
-  pullHourly: true,
   fetch,
   adapter: addresses,
   allowNegativeValue: true, // payments are lower than gas fees paid

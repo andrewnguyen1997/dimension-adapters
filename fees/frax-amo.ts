@@ -47,7 +47,7 @@ const fetch = async (timestamp: number, _: any, options: FetchOptions): Promise<
   return {
     timestamp,
     dailyFees,
-    dailyRevenue: dailyProtocolRevenue,
+    dailyRevenue: dailyFees,
     dailyProtocolRevenue: dailyProtocolRevenue,
     dailySupplySideRevenue: dailySupplySideRevenue,
   };
@@ -90,7 +90,7 @@ const adapter: SimpleAdapter = {
   version: 1,
   methodology: {
     Fees: 'Total interest paid to users by borrowing FRAX.',
-    Revenue: 'Amount of interest collected by Frax Finance.',
+    Revenue: 'Total interest paid to users by borrowing FRAX.',
     ProtocolRevenue: 'Amount of interest collected by Frax Finance.',
     SupplySideRevenue: 'Amount of interest paid to lenders.',
   }

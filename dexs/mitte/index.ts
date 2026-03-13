@@ -1,5 +1,4 @@
 import type { FetchOptions, SimpleAdapter } from "../../adapters/types";
-import { CHAIN } from "../../helpers/chains";
 import { httpGet } from "../../utils/fetchURL";
 
 const startTimestamp = 1710288000 // 2024-03-13
@@ -7,8 +6,9 @@ const startTimestamp = 1710288000 // 2024-03-13
 const api = "https://apitest.mitte.gg/v1/meme/daily-volume"
 
 const adapter: SimpleAdapter = {
+  version: 2,
   adapter: {
-    [CHAIN.NEAR]: {
+    "near": {
       start: startTimestamp,
       fetch: async ({ toTimestamp }: FetchOptions) => {
         const data = await httpGet(`${api}?ts=${toTimestamp}`)

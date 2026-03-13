@@ -1,7 +1,6 @@
 import { Dependencies, FetchOptions, FetchResult, SimpleAdapter } from "../../adapters/types";
 import { CHAIN } from "../../helpers/chains";
 import { queryDuneSql } from "../../helpers/dune";
-import { jupBuybackRatioFromRevenue, JUPITER_METRICS } from "../../fees/jupiter";
 
 async function fetch(_a: any, _b: any, options: FetchOptions): Promise<FetchResult> {
 
@@ -38,16 +37,8 @@ async function fetch(_a: any, _b: any, options: FetchOptions): Promise<FetchResu
     if (!queryResult[0] || !queryResult[0].total_volume || !queryResult[0].total_fees)
         throw new Error('Jupiter prediction dune data not found');
 
-    const volume = queryResult[0].total_volume;
-    const fees = queryResult[0].total_fees;
-    
-    const dailyVolume = options.createBalances();
-    const dailyFees = options.createBalances();
-    const dailySupplySideRevenue = options.createBalances();
-  
-    dailyVolume.addUSDValue(volume);
-    dailyFees.addUSDValue(fees, JUPITER_METRICS.JupPredictionFees);
-    dailySupplySideRevenue.addUSDValue(fees, JUPITER_METRICS.JupPredictionFeesToKalshi);
+    const dailyVolume = queryResult[0].total_volume;
+    const dailyFees = queryResult[0].total_fees;
 
     return {
         dailyVolume,
@@ -55,7 +46,6 @@ async function fetch(_a: any, _b: any, options: FetchOptions): Promise<FetchResu
         dailyRevenue: 0,
         dailyHoldersRevenue: 0,
         dailyProtocolRevenue: 0,
-        dailySupplySideRevenue,
     }
 }
 
@@ -63,18 +53,8 @@ const methodology = {
     Volume: 'Volume of all trades through jupiter interface',
     Fees: 'Venue fees paid by users',
     Revenue: 'Jupiter doesnt keep any fees as of now, all the fees goes to kalshi',
-    SupplySideRevenue: 'All fees go to Kalshi',
     HoldersRevenue: 'No holders revenue',
     ProtocolRevenue: 'No protocol revenue',
-}
-
-const breakdownMethodology = {
-    Fees: {
-      [JUPITER_METRICS.JupPredictionFees]: 'Venue fees paid by users',
-    },
-    SupplySideRevenue: {
-      [JUPITER_METRICS.JupPredictionFeesToKalshi]: 'All fees go to Kalshi',
-    },
 }
 
 const adapter: SimpleAdapter = {
@@ -86,7 +66,6 @@ const adapter: SimpleAdapter = {
     isExpensiveAdapter: true,
     doublecounted: true,
     dependencies: [Dependencies.DUNE],
-    breakdownMethodology
 }
 
 export default adapter;

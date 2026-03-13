@@ -149,8 +149,6 @@ const buildQueryPayload = (start: number, end: number) => ({
 });
 
 const fetch = async (options: FetchOptions): Promise<FetchResultV2> => {
-  const dailyFees = options.createBalances()
-  const dailyRevenue = options.createBalances()
   const [feeRes] = await Promise.all([
     postURL(url, buildQueryPayload(options.startTimestamp, options.endTimestamp), 3, {
       headers: {
@@ -162,21 +160,16 @@ const fetch = async (options: FetchOptions): Promise<FetchResultV2> => {
 
   const fee_usd = feeRes?.results?.find((res: any) => res.alias === "Total Fee").matrix?.samples?.[0]?.values;
   const tf = fee_usd.at(-1).value;
-  dailyFees.addUSDValue(tf - fee_usd.at(0).value);
+  const dailyFees = tf - fee_usd.at(0).value;
 
   const revenue_fee_usd = feeRes?.results?.find((res: any) => res.alias === "Total Revenue").matrix
     ?.samples?.[0]?.values;
-  dailyRevenue.addUSDValue(revenue_fee_usd.at(-1).value);
-  dailyFees.addBalances(dailyRevenue)
-  const dailySupplySideRevenue = dailyFees.clone()
-  dailySupplySideRevenue.subtract(dailyRevenue)
-  
+  const dailyRevenue = revenue_fee_usd.at(-1).value;
 
   return {
     dailyFees,
     dailyRevenue,
     dailyProtocolRevenue: dailyRevenue,
-    dailySupplySideRevenue
   };
 };
 

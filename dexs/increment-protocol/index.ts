@@ -1,6 +1,4 @@
-import { FetchOptions } from "../../adapters/types";
 import { request, gql } from "graphql-request";
-import { CHAIN } from "../../helpers/chains";
 
 const subgraphUrl =
   "https://subgraph.increment.finance/subgraphs/name/Increment-Finance/subgraph";
@@ -20,13 +18,13 @@ const volumeQuery = gql`
 
 export default {
   adapter: {
-    [CHAIN.ERA]: {
-      fetch: async (_t: any, _c: any, { endTimestamp }: FetchOptions) => {
+    era: {
+      fetch: async (_t: any, _c: any, { endTimestamp }) => {
         const volumeData = await request(subgraphUrl, volumeQuery, {
           endTimestamp: endTimestamp ?? Math.floor(Date.now() / 1000)
         });
         const dailyVolume = volumeData.dailyCandles.reduce(
-          (acc: number, { volume }: { volume: number }) => acc + volume * 10 ** -18,
+          (acc, { volume }) => acc + volume * 10 ** -18,
           0
         );
         return { dailyVolume };

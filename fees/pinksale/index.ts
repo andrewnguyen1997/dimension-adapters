@@ -21,12 +21,12 @@ const FEE_WALLETS: any = {
 };
 
 
-const fetchSolanaFees: any = async (options: FetchOptions) => {
+const fetchSolanaFees: any = async (_: any, _1: any, options: FetchOptions) => {
   const dailyFees = await getSolanaReceived({ options, targets: FEE_WALLETS[CHAIN.SOLANA] })
   return { dailyFees, dailyRevenue: dailyFees, dailyProtocolRevenue: dailyFees, dailyHoldersRevenue: 0, }
 }
 
-const fetch = async (options: FetchOptions) => {
+const fetch = async (_: any, _1: any, options: FetchOptions) => {
   // https://docs.pinksale.finance/service-fees
 
   const feeWallet = FEE_WALLETS[options.chain];
@@ -36,8 +36,7 @@ const fetch = async (options: FetchOptions) => {
 };
 
 const adapter: SimpleAdapter = {
-  version: 2,
-  pullHourly: true,
+  version: 1,
   dependencies: [Dependencies.ALLIUM],
   fetch,
   adapter: {

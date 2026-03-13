@@ -1,5 +1,4 @@
 import type { SimpleAdapter } from "../../adapters/types";
-import { CHAIN } from "../../helpers/chains";
 import { httpGet } from "../../utils/fetchURL";
 
 const fetch = async () => {
@@ -27,7 +26,7 @@ const fetch = async () => {
 
 const adapter: SimpleAdapter = {
   adapter: {
-    [CHAIN.SEI]: {
+    sei: {
       fetch,
       runAtCurrTime: true,
     },

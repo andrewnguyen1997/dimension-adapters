@@ -133,7 +133,6 @@ const fetch: FetchV2 = async (fetchOptions) => {
 
 const adapter: SimpleAdapter = {
   version: 2,
-  pullHourly: true,
   methodology: {
     Fees: "All swap fees paid by traders.",
     UserFees: "All swap fees paid by traders.",

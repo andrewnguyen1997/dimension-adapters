@@ -99,7 +99,7 @@ const fetch = async ({ chain, endTimestamp, startTimestamp }: FetchOptions) => {
 }
 
 const methodology = {
-  Volume: 'Sum of inflows and outflows that go through the Toros protocol'
+  DailyVolume: 'Sum of inflows and outflows that go through the Toros protocol'
 }
 
 const adapter: SimpleAdapter = {

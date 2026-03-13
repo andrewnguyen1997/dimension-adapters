@@ -137,12 +137,11 @@ const fetch = async (_a: any, _b: any, options: FetchOptions) => {
 };
 
 const adapter: SimpleAdapter = {
-    version: 1,
+	version: 1,
 	dependencies: [Dependencies.DUNE],
 	start: '2025-08-02',
-    fetch,
-    chains: [CHAIN.STARKNET],
-    skipBreakdownValidation: true, // skipping breakdown validation as we dont have the revenue breakdown
+  fetch,
+  chains: [CHAIN.STARKNET],
 	methodology: {
 		Fees: "Tracks total fees paid traders while trading on Extended app.",
 	},

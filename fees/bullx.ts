@@ -5,12 +5,10 @@ import ADDRESSES from '../helpers/coreAssets.json'
 import { Dependencies, FetchOptions, SimpleAdapter } from "../adapters/types";
 import { CHAIN } from "../helpers/chains";
 import { queryDuneSql } from "../helpers/dune";
-import { METRIC } from '../helpers/metrics';
 
 const fetch: any = async (_a: any, _b: any, options: FetchOptions) => {
   // Determine which address/trader_id to use based on date 2024-11-16
   const dailyFees = options.createBalances();
-  const dailyRevenue = options.createBalances();
   const cutoffTimestamp = 1731715200;
   const isNewAddress = options.startOfDay >= cutoffTimestamp;
 
@@ -49,12 +47,11 @@ const fetch: any = async (_a: any, _b: any, options: FetchOptions) => {
 
   const fees = await queryDuneSql(options, query);
 
-  dailyFees.add(ADDRESSES.solana.SOL, fees[0].fee, METRIC.TRADING_FEES);
-  dailyRevenue.add(ADDRESSES.solana.SOL, fees[0].fee, METRIC.TRADING_FEES);
+  dailyFees.add(ADDRESSES.solana.SOL, fees[0].fee);
 
   return {
     dailyFees,
-    dailyRevenue,
+    dailyRevenue: dailyFees,
   }
 }
 
@@ -68,14 +65,6 @@ const adapter: SimpleAdapter = {
   methodology: {
     Fees: "All trading fees paid by users while using BullX bot.",
     Revenue: "Trading fees are collected by BullX protocol."
-  },
-  breakdownMethodology: {
-    Fees: {
-      [METRIC.TRADING_FEES]: "SOL fees collected from user trades executed through the BullX trading bot on Solana DEXes.",
-    },
-    Revenue: {
-      [METRIC.TRADING_FEES]: "SOL revenue retained by BullX protocol from user trading activity.",
-    },
   }
 };
 

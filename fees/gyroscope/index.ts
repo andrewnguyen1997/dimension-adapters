@@ -1,22 +1,23 @@
-import { SimpleAdapter, FetchOptions } from "../../adapters/types";
+import { Adapter, FetchOptions } from "../../adapters/types";
 import { CHAIN } from "../../helpers/chains";
 import { addTokensReceived } from '../../helpers/token';
 
 // As per: https://docs.gyro.finance/deployed-contracts/pools.html#fees-receiver
-const chainConfig: Record<string, { targets: string[], start?: string }> = {
-  [CHAIN.BASE]: { targets: ['0xA01ba17778A860EC92053325d0de4022240ceeA4']},
-  [CHAIN.ETHEREUM]: { targets: ['0xA01ba17778A860EC92053325d0de4022240ceeA4']},
-  [CHAIN.AVAX]: { targets: ['0xA01ba17778A860EC92053325d0de4022240ceeA4']},
-  [CHAIN.ARBITRUM]: { targets: ['0xA01ba17778A860EC92053325d0de4022240ceeA4']},
-  [CHAIN.XDAI]: { targets: ['0xA01ba17778A860EC92053325d0de4022240ceeA4']},
-  [CHAIN.OPTIMISM]: { targets: ['0xA01ba17778A860EC92053325d0de4022240ceeA4']},
+const config = {
+  [CHAIN.BASE]: ['0xA01ba17778A860EC92053325d0de4022240ceeA4',],
+  [CHAIN.ETHEREUM]: ['0xA01ba17778A860EC92053325d0de4022240ceeA4',],
+  [CHAIN.AVAX]: ['0xA01ba17778A860EC92053325d0de4022240ceeA4',],
+  [CHAIN.ARBITRUM]: ['0xA01ba17778A860EC92053325d0de4022240ceeA4',],
+  [CHAIN.XDAI]: ['0xA01ba17778A860EC92053325d0de4022240ceeA4'],
+  [CHAIN.OPTIMISM]: ['0xA01ba17778A860EC92053325d0de4022240ceeA4'],
+  
   // [CHAIN.SEI]: ['0xA01ba17778A860EC92053325d0de4022240ceeA4',], -- not supported by Llama indexer as is
   // [CHAIN.POLYGON]: [],
 }
 async function fetch(options: FetchOptions) {
-  const { chain } = options;
+  const { chain, api } = options;
 
-  const dailyFees = await addTokensReceived({ options, targets: chainConfig[chain].targets })
+  const dailyFees = await addTokensReceived({ options, targets: config[chain] })
 
   /* 
   const keys = Object.keys(dailyFees.getBalances())
@@ -57,11 +58,14 @@ async function fetch(options: FetchOptions) {
 };
 
 
-const adapter: SimpleAdapter = {
+const adapter: Adapter = {
   version: 2,
-  pullHourly: true,
-  fetch,
-  adapter: chainConfig,
+  adapter: {
+  }
 }
+
+Object.keys(config).forEach((chain) => {
+  adapter.adapter[chain] = { fetch }
+})
 
 export default adapter;

@@ -1,7 +1,6 @@
 import { FetchOptions, FetchResult, FetchResultV2, SimpleAdapter } from "../../adapters/types";
 import { CHAIN } from "../../helpers/chains";
 import { getFees } from "../../helpers/compoundV2";
-import { METRIC } from "../../helpers/metrics";
 
 const comptrollers: Array<string> = [
   '0xb3831584acb95ed9ccb0c11f677b5ad01deaeec0',
@@ -18,7 +17,7 @@ async function fetch(options: FetchOptions): Promise<FetchResultV2> {
   }
   
   const dailySupplySideRevenue = dailyFees.clone(1)
-  dailySupplySideRevenue.subtract(dailyRevenue, METRIC.BORROW_INTEREST)
+  dailySupplySideRevenue.subtract(dailyRevenue)
   
   return {
     dailyFees,

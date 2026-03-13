@@ -7,16 +7,9 @@ const methodology = {
   ProtocolRevenue: 'Total fees paid are collected by Bungee protocol.',
 }
 
-const breakdownMethodology = {
-  Fees: {
-    'Aggregator fees': 'Fees charged by Bungee on swap and bridge transactions routed through Socket Gateway contracts',
-  },
-}
-
 const fetch: any = async (options: FetchOptions): Promise<FetchResultFees> => {
   const { dailyFees } = await fetchBungeeData(options, { fees: true })
-
-  return {
+  return { 
     dailyFees,
     dailyRevenue: dailyFees,
     dailyProtocolRevenue: 0,
@@ -24,12 +17,10 @@ const fetch: any = async (options: FetchOptions): Promise<FetchResultFees> => {
 };
 
 const adapter: SimpleAdapter = {
-  pullHourly: true,
   version: 2,
+  methodology,
   fetch,
   start: '2023-08-10',
-  methodology,
-  breakdownMethodology,
   chains: fetchBungeeChains()
 };
 

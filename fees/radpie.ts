@@ -57,7 +57,6 @@ const graph = (chain: Chain) => {
 
 const adapter: SimpleAdapter = {
   version: 2,
-  pullHourly: true,
   adapter: {
     [CHAIN.BSC]: {
       fetch: graph(CHAIN.BSC),
