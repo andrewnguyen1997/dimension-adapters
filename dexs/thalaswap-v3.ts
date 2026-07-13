@@ -1,5 +1,5 @@
 import fetchURL from "../utils/fetchURL";
-import { SimpleAdapter } from "../adapters/types";
+import { SimpleAdapter, FetchOptions } from "../adapters/types";
 import { CHAIN } from "../helpers/chains";
 
 const thalaDappURL = "https://app.thala.fi/";
@@ -27,15 +27,15 @@ interface IVolumeall {
   timestamp: string;
 }
 
-const fetch = async (timestamp: number) => {
-  const dayVolumeQuery = (await fetchURL(volumeEndpoint(timestamp, "1D")))?.data;
+const fetch = async (options: FetchOptions) => {
+  const dayVolumeQuery = (await fetchURL(volumeEndpoint(options.toTimestamp, "1D")))?.data;
   const dailyVolume = dayVolumeQuery.reduce((partialSum: number, a: IVolumeall) => partialSum + a.value, 0);
 
 
-  const dayFeesQuery = (await fetchURL(feesEndpoint(timestamp, "1D")))?.data;
+  const dayFeesQuery = (await fetchURL(feesEndpoint(options.toTimestamp, "1D")))?.data;
   const dailyFees = dayFeesQuery.reduce((partialSum: number, a: IVolumeall) => partialSum + a.value, 0);
 
-  const dayRevenueQuery = (await fetchURL(revenueEndpoint(timestamp, "1D")))?.data;
+  const dayRevenueQuery = (await fetchURL(revenueEndpoint(options.toTimestamp, "1D")))?.data;
   const dailyRevenue = dayRevenueQuery.reduce((partialSum: number, a: IVolumeall) => partialSum + a.value, 0);
 
 
@@ -43,16 +43,22 @@ const fetch = async (timestamp: number) => {
     dailyVolume: dailyVolume,
     dailyFees,
     dailyRevenue,
+    dailySupplySideRevenue: dailyFees - dailyRevenue,
   };
 };
 
+const methodology = {
+  Volume: "Trading volume across all ThalaSwap v3 pools, summed from the protocol's trading-volume API.",
+  Fees: "Total swap fees paid by traders, summed from the protocol's trading-fee API.",
+  Revenue: "The protocol's cut of swap fees that accrues to the treasury, from the protocol's protocol-revenue API.",
+  SupplySideRevenue: "The portion of swap fees that accrues to liquidity providers, computed as total fees minus protocol revenue.",
+};
+
 const adapter: SimpleAdapter = {
-  adapter: {
-    [CHAIN.APTOS]: {
-      fetch,
-      start: '2025-09-04',
-    },
-  },
+  fetch,
+  chains: [CHAIN.APTOS],
+  start: '2025-09-04',
+  methodology,
 };
 
 export default adapter;

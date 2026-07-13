@@ -58,7 +58,7 @@ export function fetchChainTransactionFeesExport({ chain, start }: { chain: CHAIN
   return {
     adapter: {
       [chain]: {
-        fetch: async (_a: any, _b: any, options: FetchOptions) => {
+        fetch: async (options: FetchOptions) => {
           const transactionFees = await fetchTransactionFees(options)
           return {
             dailyFees: transactionFees,
@@ -76,30 +76,26 @@ export function fetchChainTransactionFeesExport({ chain, start }: { chain: CHAIN
 }
 
 export const chainAdapter = (adapterKey: string, assetID: string, startTime: number) => {
-  const fetch = async (timestamp: number) => {
-    const today = new Date(getTimestampAtStartOfDayUTC(timestamp) * 1000).toISOString()
-    const yesterday = new Date(getTimestampAtStartOfPreviousDayUTC(timestamp) * 1000).toISOString()
-    const dailyFee = await getOneDayFees(assetID, yesterday, today);
-
-    return {
-      timestamp,
-      dailyFees: dailyFee,
-    };
+  const fetch = async (options: FetchOptions) => {
+    const today = new Date(getTimestampAtStartOfDayUTC(options.toTimestamp) * 1000).toISOString()
+    const yesterday = new Date(getTimestampAtStartOfPreviousDayUTC(options.toTimestamp) * 1000).toISOString()
+    const dailyFees = await getOneDayFees(assetID, yesterday, today);
+    return { dailyFees };
   };
 
   return {
     [adapterKey]: {
-      fetch: fetch,
+      fetch,
       start: startTime
     }
   }
 };
 
 export const getOneDayFees = async (assetID: string, startDate: string, endDate: string) => {
-  const result = await httpGet(`https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?page_size=10000&metrics=FeeTotUSD&assets=${assetID}&start_time=${startDate}&end_time=${endDate}`);
+  const result = await httpGet(`https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=${assetID}&metrics=FeeTotNtv&start_time=${startDate}&end_time=${endDate}&frequency=1d`);
   if (!result.data[0]) {
     throw new Error(`Failed to fetch CoinMetrics data for ${assetID} on ${endDate}`);
   }
 
-  return parseFloat(result.data[1]['FeeTotUSD']);
+  return parseFloat(result.data[1]['FeeTotNtv']);
 }

@@ -1,4 +1,4 @@
-import { FetchOptions, SimpleAdapter } from "../../adapters/types";
+import { FetchOptions, FetchResultV2, SimpleAdapter } from "../../adapters/types";
 import { CHAIN } from "../../helpers/chains";
 import { ICurveDexConfig, ContractVersion, getCurveDexData } from "../../helpers/curve";
 import { fetchCurveApiData, getChainDataFromApiResponse } from "./api";
@@ -240,6 +240,44 @@ const CurveDexConfigs: {[key: string]: ICurveDexConfig} = {
       }
     }
   },
+  [CHAIN.BSC]: {
+    start: '2023-12-19',
+    stable_factory: [
+      '0xEfDE221f306152971D8e9f181bFe998447975810',
+    ],
+    factory_crypto: [
+      '0xBd5fBd2FA58cB15228a9Abdac9ec994f79E3483C',
+    ],
+    factory_twocrypto: [
+      '0x98EE851a00abeE0d95D08cF4CA2BdCE32aeaAF7F',
+    ],
+    factory_tricrypto: [
+      '0x38f8D93406fA2d9924DcFcB67dB5B0521Fb20F7D',
+    ],
+    factory_stable_ng: [
+      '0xd7E72f3615aa65b92A4DBdC211E296a35512988B',
+    ],
+    customPools: {},
+  },
+  [CHAIN.FANTOM]: {
+    start: '2021-02-20',
+    stable_factory: [
+      '0x686d67265703d1f124c45e33d47d794c566889ba',
+    ],
+    factory_crypto: [
+      '0xE5De15A9C9bBedb4F5EC13B131E61245f2983A69',
+    ],
+    factory_twocrypto: [
+      '0x98EE851a00abeE0d95D08cF4CA2BdCE32aeaAF7F',
+    ],
+    factory_tricrypto: [
+      '0x9AF14D26075f142eb3F292D5065EB3faa646167b',
+    ],
+    factory_stable_ng: [
+      '0xe61Fb97Ef6eBFBa12B36Ffd7be785c1F5A2DE66b',
+    ],
+    customPools: {},
+  },
   [CHAIN.POLYGON]: {
     start: '2021-10-05',
     stable_factory: [
@@ -464,6 +502,21 @@ const CurveDexConfigs: {[key: string]: ICurveDexConfig} = {
     blacklistedPools: [
     ],
   },
+  [CHAIN.ROBINHOOD]: {
+    start: '2026-07-05',
+    factory_stable_ng: [
+      '0x8271e06E5887FE5ba05234f5315c19f3Ec90E8aD',
+    ],
+    factory_twocrypto: [
+      '0xe7FBd704B938cB8fe26313C3464D4b7B7348c88C',
+    ],
+    factory_tricrypto: [
+      '0x6E28493348446503db04A49621d8e6C9A40015FB',
+    ],
+    customPools: {},
+    blacklistedPools: [
+    ],
+  },
 
   // [CHAIN.TAC]: {
   //   start: '2025-06-25',
@@ -488,31 +541,54 @@ async function fetchFromApi(options: FetchOptions) {
     throw new Error(`No data for chain ${options.chain} in API response`);
   }
 
+  const dailyFees = options.createBalances();
+  const dailyRevenue = options.createBalances();
+  const dailyProtocolRevenue = options.createBalances();
+  const dailySupplySideRevenue = options.createBalances();
+  const dailyHoldersRevenue = options.createBalances();
+
+  dailyFees.addUSDValue(chainData.total_fees);
+  dailyRevenue.addUSDValue(chainData.fees_to_dao + chainData.fees_to_treasury);
+  dailyProtocolRevenue.addUSDValue(chainData.fees_to_treasury);
+  dailySupplySideRevenue.addUSDValue(chainData.fees_to_lp);
+  dailyHoldersRevenue.addUSDValue(chainData.fees_to_dao);
+  
   return {
     dailyVolume: chainData.total_volume,
-    dailyFees: chainData.total_fees,
-    dailyUserFees: chainData.total_fees,
-    dailyRevenue: chainData.fees_to_dao + chainData.fees_to_treasury,
-    dailyProtocolRevenue: chainData.fees_to_treasury,
-    dailySupplySideRevenue: chainData.fees_to_lp,
-    dailyHoldersRevenue: chainData.fees_to_dao,
+    dailyFees,
+    dailyUserFees: dailyFees,
+    dailyRevenue,
+    dailyProtocolRevenue,
+    dailySupplySideRevenue,
+    dailyHoldersRevenue,
   };
 }
 
 async function fetchFromOnChain(options: FetchOptions, config: ICurveDexConfig) {
   const { dailyVolume, swapFees, adminFees } = await getCurveDexData(options, config);
 
-  const dailySupplySideRevenue = swapFees.clone(1);
-  dailySupplySideRevenue.subtract(adminFees);
+  const dailyFees = options.createBalances();
+  const dailyRevenue = options.createBalances();
+  const dailyProtocolRevenue = options.createBalances();
+  const dailySupplySideRevenue = options.createBalances();
+  const dailyHoldersRevenue = options.createBalances();
+  
+  const lpRevenue = swapFees.clone(1);
+  lpRevenue.subtract(adminFees);
+
+  dailyFees.add(swapFees);
+  dailyRevenue.add(adminFees);
+  dailySupplySideRevenue.add(lpRevenue);
+  dailyHoldersRevenue.add(adminFees);
 
   return {
     dailyVolume,
-    dailyFees: swapFees,
-    dailyUserFees: swapFees,
-    dailyRevenue: adminFees,
-    dailyProtocolRevenue: 0,
+    dailyFees,
+    dailyUserFees: dailyFees,
+    dailyRevenue,
+    dailyProtocolRevenue,
     dailySupplySideRevenue,
-    dailyHoldersRevenue: adminFees,
+    dailyHoldersRevenue,
   };
 }
 
@@ -523,7 +599,7 @@ export function getCurveExport(configs: {[key: string]: ICurveDexConfig}) {
       return {
         ...acc,
         [chain]: {
-          fetch: async function(options: FetchOptions) {
+          fetch: async function(options: FetchOptions): Promise<FetchResultV2> {
             // Try API first, fall back to on-chain if chain not in API or API fails
             try {
               return await fetchFromApi(options);
@@ -541,16 +617,6 @@ export function getCurveExport(configs: {[key: string]: ICurveDexConfig}) {
   return adapter;
 }
 
-// https://resources.curve.finance/pools/overview/#pool-fees
 const adapter = getCurveExport(CurveDexConfigs)
-
-adapter.methodology = {
-  Fees: "Trading and liquidity fees from Curve pools (typically 0.01%-0.04%)",
-  UserFees: "Trading and liquidity fees paid by users",
-  Revenue: "Fees distributed to veCRV holders and protocol treasury",
-  ProtocolRevenue: "Fees allocated to the protocol treasury",
-  HoldersRevenue: "Fees distributed to veCRV governance token holders",
-  SupplySideRevenue: "Fees distributed to liquidity providers"
-}
 
 export default adapter;

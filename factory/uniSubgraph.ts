@@ -24,6 +24,7 @@ interface SubgraphConfig {
     Revenue?: number;
   };
   start?: string;
+  deadFrom?: string;
   methodology?: Record<string, string>;
 }
 
@@ -51,22 +52,6 @@ const configs: Record<string, SubgraphConfig> = {
     },
     totalVolume: { factory: "factories", field: "totalVolumeUSD" },
   },
-  "upheaval-v2": {
-    graphUrls: {
-      [CHAIN.HYPERLIQUID]: "https://api.upheaval.fi/subgraphs/name/upheaval/exchange-v2",
-    },
-    totalVolume: { factory: "pancakeFactories" },
-    feesPercent: {
-      type: "volume",
-      Fees: 0.3,
-      UserFees: 0.3,
-      ProtocolRevenue: 0.16 * 0.3,
-      HoldersRevenue: 0,
-      SupplySideRevenue: 0.84 * 0.3,
-      Revenue: 0.16 * 0.3,
-    },
-    start: "2025-07-26",
-  },
   // "sailfish": {
   //   graphUrls: {
   //     occ: "https://api.goldsky.com/api/public/project_cm1s79wa2tlb701tbchmeaflf/subgraphs/sailfish-v3-occ-mainnet/1.0.3/gn",
@@ -81,21 +66,6 @@ const configs: Record<string, SubgraphConfig> = {
   //     Revenue: 50,
   //   },
   // },
-  "upheaval-v3": {
-    graphUrls: {
-      [CHAIN.HYPERLIQUID]: "https://api.upheaval.fi/subgraphs/name/upheaval/exchange-v3-fixed",
-    },
-    totalVolume: { factory: "factories" },
-    feesPercent: {
-      type: "fees",
-      ProtocolRevenue: 16,
-      HoldersRevenue: 0,
-      UserFees: 100,
-      SupplySideRevenue: 84,
-      Revenue: 16,
-    },
-    start: "2025-08-06",
-  },
   "metavault-v3": {
     graphUrls: {
       [CHAIN.SCROLL]: "https://api.studio.thegraph.com/query/55804/metavault-v3/version/latest",
@@ -127,52 +97,22 @@ const configs: Record<string, SubgraphConfig> = {
     },
     start: "2024-03-19",
   },
-  "retro": {
-    graphUrls: {
-      [CHAIN.POLYGON]: sdk.graph.modifyEndpoint('DZyDuvUHNThtJJQAEbYGr32xYc93BZAdfqatpYUNMZbe'),
-    },
-    totalVolume: { factory: "factories", field: "totalVolumeUSD" },
-    feesPercent: {
-      type: "fees",
-      ProtocolRevenue: 10,
-      HoldersRevenue: 0,
-      UserFees: 100,
-      SupplySideRevenue: 90,
-      Revenue: 10,
-    },
-    start: "2023-07-02",
-  },
-  "fusionx-v3": {
-    graphUrls: {
-      [CHAIN.MANTLE]: "https://graphv3.fusionx.finance/subgraphs/name/fusionx/exchange-v3",
-    },
-    totalVolume: { factory: "factories", field: "totalVolumeUSD" },
-    feesPercent: {
-      type: "fees",
-      ProtocolRevenue: 16.7,
-      HoldersRevenue: 16.7,
-      Fees: 100,
-      UserFees: 100,
-      SupplySideRevenue: 66.6,
-      Revenue: 33.4,
-    },
-    start: "2023-07-13",
-  },
-  "winnieswap": {
-    graphUrls: {
-      [CHAIN.BERACHAIN]: "https://api.goldsky.com/api/public/project_cmesjqx64lbfh01wc6z2q9tb0/subgraphs/winnieswap/0.0.1/gn",
-    },
-    totalVolume: { factory: "factories", field: "totalVolumeUSD" },
-    feesPercent: {
-      type: "fees",
-      ProtocolRevenue: 0,
-      HoldersRevenue: 0,
-      UserFees: 100,
-      SupplySideRevenue: 100,
-      Revenue: 0,
-    },
-    start: "2025-07-07",
-  },
+  // "retro": {
+  //   graphUrls: {
+  //     [CHAIN.POLYGON]: sdk.graph.modifyEndpoint('DZyDuvUHNThtJJQAEbYGr32xYc93BZAdfqatpYUNMZbe'),
+  //   },
+  //   totalVolume: { factory: "factories", field: "totalVolumeUSD" },
+  //   feesPercent: {
+  //     type: "fees",
+  //     ProtocolRevenue: 10,
+  //     HoldersRevenue: 0,
+  //     UserFees: 100,
+  //     SupplySideRevenue: 90,
+  //     Revenue: 10,
+  //   },
+  //   start: "2023-07-02",
+  // },
+  // winnieswap migrated off its deleted Goldsky subgraph to on-chain logs -> dexs/winnieswap.ts
   "physica-finance": {
     graphUrls: {
       [CHAIN.PLANQ]: "https://subgraph.planq.finance/subgraphs/name/ianlapham/uniswap-v3",
@@ -188,21 +128,7 @@ const configs: Record<string, SubgraphConfig> = {
     },
     start: "2024-05-22",
   },
-  "fpex": {
-    graphUrls: {
-      [CHAIN.FLARE]: "https://api.goldsky.com/api/public/project_cmbnjfb9bfd3001tj08r4hq5c/subgraphs/flareswap/1.0.0/gn",
-    },
-    totalVolume: { factory: "factories", field: "totalVolumeUSD" },
-    feesPercent: {
-      type: "fees",
-      UserFees: 100,
-      SupplySideRevenue: 100,
-      Revenue: 0,
-      ProtocolRevenue: 0,
-      HoldersRevenue: 0,
-    },
-    start: "2025-07-01",
-  },
+  // fpex migrated off its deleted Goldsky subgraph to on-chain logs -> dexs/fpex.ts
   "hydradex-v3": {
     graphUrls: {
       [CHAIN.HYDRAGON]: "https://subgraph.hydrachain.org/subgraphs/name/v3-subgraph",
@@ -293,21 +219,6 @@ const configs: Record<string, SubgraphConfig> = {
       Revenue: 25, // 25% to protocol (5% ProtocolRevenue + 20% HoldersRevenue)
     },
   },
-  mimo: {
-    graphUrls: {
-      [CHAIN.IOTEX]: "https://graph.mimo.exchange/subgraphs/name/mimo/mainnet"
-    },
-    totalVolume: { factory: "uniswapFactories", field: "totalVolumeUSD", },
-    feesPercent: {
-      type: "volume",
-      UserFees: 0.3,
-      Fees: 0.3,
-      ProtocolRevenue: 0,
-      Revenue: 0,
-      SupplySideRevenue: 0.3,
-      HoldersRevenue: 0,
-    }
-  },
   mojitoswap: {
     graphUrls: {
       [CHAIN.KCC]: "https://thegraph.kcc.network/subgraphs/name/mojito/swap",
@@ -364,6 +275,7 @@ const configs: Record<string, SubgraphConfig> = {
       factory: "factories",
     },
     start: "2023-11-25",
+    deadFrom: "2026-02-03",
     feesPercent: {
       type: "fees",
       ProtocolRevenue: 0,
@@ -416,6 +328,21 @@ const configs: Record<string, SubgraphConfig> = {
     },
     start: '2026-01-20',
   },
+  tsunami: {
+    graphUrls: {
+      [CHAIN.INK]: "https://api.goldsky.com/api/public/project_cmm7vh5xwsa8m01qmdr7w7u62/subgraphs/tsunami-v3/2.4.0/gn",
+    },
+    totalVolume: { factory: "factories", field: "totalVolumeUSD" },
+    feesPercent: {
+      type: "fees",
+      UserFees: 100,
+      SupplySideRevenue: 100,
+      Revenue: 0,
+      ProtocolRevenue: 0,
+      HoldersRevenue: 0,
+    },
+    start: '2026-03-14',
+  }
 };
 
 // Build protocols from configs
@@ -429,7 +356,7 @@ for (const [name, config] of Object.entries(configs)) {
   });
 
   const chains = Object.keys(config.graphUrls);
-  const { start } = config;
+  const { start, deadFrom } = config;
   const methodology = config.methodology ?? computeMethodology(config.feesPercent);
 
   const adapter: SimpleAdapter = {
@@ -440,11 +367,13 @@ for (const [name, config] of Object.entries(configs)) {
       [chain]: {
         fetch,
         ...(start && { start }),
+        ...(deadFrom && { deadFrom }),
       },
     }), {}),
   };
 
   if (start) (adapter as any).start = start;
+  if (deadFrom) (adapter as any).deadFrom = deadFrom;
   if (methodology) adapter.methodology = methodology;
 
   protocols[name] = adapter;

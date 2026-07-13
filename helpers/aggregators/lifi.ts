@@ -15,6 +15,7 @@ interface LifiTransfer {
   sending: {
     amountUSD: string;
     chainId: number;
+    timestamp: number;
   };
   receiving: {
     chainId: number;
@@ -204,6 +205,10 @@ export const LifiDiamonds: IContract = {
   [CHAIN.PLUME]: {
     id: '0x6f5C8Bb0C5Fe4ECeAC40EE1C238EaB6bbb29761c',
     startTime: '2025-09-01'
+  },
+  [CHAIN.ROBINHOOD]: {
+    id: '0xB477751B76CF82d00a686A1232f5fCD772414Af3',
+    startTime: '2026-05-11'
   },
   [CHAIN.MONAD]: {
     id: '0x026F252016A7C47CDEf1F05a3Fc9E20C92a49C37',
@@ -396,6 +401,10 @@ export const LifiFeeCollectors: IContract = {
     id: '0x3e46137a80BB3c14906505d0f78ADbb2deDb9E3f',
     startTime: '2025-09-01'
   },
+  [CHAIN.ROBINHOOD]: {
+    id: '0xAD257784C6D50640d1EFa31cfB3e75bD566f63BA',
+    startTime: '2026-05-11'
+  },
   [CHAIN.HEMI]: {
     id: '0x026F252016A7C47CDEf1F05a3Fc9E20C92a49C37',
     startTime: '2025-09-07'
@@ -436,6 +445,9 @@ export const fetchVolumeFromLIFIAPI = async (chain: Chain, startTime: number, en
     transfers.forEach((tx) => {
       if (
         tx.status === 'DONE' &&
+        // enforce the requested window client-side: the API filter is by chain, but with hourly
+        // runs we must drop any transfer whose timestamp falls outside [startTime, endTime]
+        tx.sending.timestamp >= startTime && tx.sending.timestamp < endTime &&
         (swapType === 'cross-chain' ? tx.receiving.chainId !== Number(LifiDiamonds[chain].id) : tx.receiving.chainId === Number(LifiDiamonds[chain].id)) &&
         (integrators && integrators.length > 0 ? integrators.includes(tx.metadata.integrator) : true) &&
         (exclude_integrators && exclude_integrators.length > 0 ? !exclude_integrators.includes(tx.metadata.integrator) : true)

@@ -1,6 +1,7 @@
 import * as sdk from "@defillama/sdk";
-import { BaseAdapter, FetchOptions, IStartTimestamp, SimpleAdapter } from "../../adapters/types";
+import { BaseAdapter, FetchOptions, SimpleAdapter } from "../../adapters/types";
 import { ABI, EulerConfigs, MorphoConfigs } from "./configs";
+import { CHAIN } from "../chains";
 
 const METRICS = {
   // use this label for all yield sources if breakdownFees was not set
@@ -25,8 +26,9 @@ export interface CuratorConfig {
   vaults: {
     // chain => 
     [key: string]: {
-      start?: IStartTimestamp | number | string;
+      start?: string;
       morpho?: Array<string>;
+      morphoV2?: Array<string>;
       euler?: Array<string>;
 
       // initial owner of morpho vaults
@@ -52,6 +54,27 @@ interface VaultERC4626Info {
   balance: bigint;
   rateBefore: bigint;
   rateAfter: bigint;
+}
+
+const blacklistedTokens: Record<string, Array<{ token: string, from: string }>> = {
+  [CHAIN.ETHEREUM]: [{
+    token: '0x7751E2F4b8ae93EF6B79d86419d42FE3295A4559', //wUSDL - winded down
+    from: "2025-12-08",
+  }],
+}
+
+// vaults excluded entirely from a given date onwards. used when a vault's share price is corrupted
+// (e.g. an allocated market frozen at 100% utilization accrues phantom interest, or a pending bad-debt
+// write-off would otherwise show up as a fake large negative day). the adapter only reads vault-level
+// share price, so a single bad market cannot be isolated - the whole vault has to be dropped.
+const blacklistedVaults: Record<string, Array<{ vault: string, from: string }>> = {
+  [CHAIN.ETHEREUM]: [{
+    // Clearstar Yield USDC (CSYUSDC) - allocated RLP/USDC market frozen at 100% utilization, accruing phantom
+    // interest that inflated reported yield from ~$281/day to ~$197k/day. vault now deprecated with unrealized
+    // bad debt; excluding from the freeze onset also keeps the eventual write-off out of the series.
+    vault: '0x9B5E92fd227876b4C07a8c02367E2CB23c639DfA',
+    from: '2026-03-21',
+  }],
 }
 
 function isOwner(owner: string, owners: Array<string>) {
@@ -82,8 +105,8 @@ async function getMorphoVaults(options: FetchOptions, vaults: Array<string> | un
   return morphoVaults
 }
 
-async function getMorphoVaultsV2(options: FetchOptions, owners: Array<string> | undefined): Promise<Array<string>> {
-  let morphoVaults: Array<string> = []
+async function getMorphoVaultsV2(options: FetchOptions, vaults: Array<string> | undefined, owners: Array<string> | undefined): Promise<Array<string>> {
+  let morphoVaults = vaults ? vaults : []
 
   if (owners && owners.length > 0) {
     for (const factory of MorphoConfigs[options.chain].vaultV2Factories) {
@@ -341,11 +364,12 @@ export function getCuratorExport(curatorConfig: CuratorConfig): SimpleAdapter {
       [METRICS.AssetYields]: 'Portion of interest yields retained by vault curators as management and performance fees',
       [METRICS.MorphoPerformanceFee]: 'Performance fees charged from vaults in Moroho',
       [METRICS.MorphoManagementFee]: 'Management fees charged from vaults in Moroho',
+      [METRICS.EulerPerformanceFee]: 'Management fees charged from vaults in Euler',
     },
     SupplySideRevenue: {
       [METRICS.AssetYields]: 'Portion of interest yields distributed to vault depositors/investors after curator fees are deducted',
       [METRICS.MorphoYieldsToSuppliers]: 'Interest yields generated from deposited assets in Morpho distributed to suppliers',
-      [METRICS.OtherAssetYieldsToSuppliers]: 'Interest yields generated from deposited assets in Euler distributed to suppliers',
+      [METRICS.EulerYieldsToSuppliers]: 'Interest yields generated from deposited assets in Euler distributed to suppliers',
     },
   }
   const exportObject: BaseAdapter = {}
@@ -357,13 +381,19 @@ export function getCuratorExport(curatorConfig: CuratorConfig): SimpleAdapter {
         let dailyRevenue = options.createBalances()
         let dailySupplySideRevenue = options.createBalances()
 
+        // vaults blacklisted from this date onwards (corrupted share price / pending write-off)
+        const blacklistedVaultsForChain = new Set(
+          blacklistedVaults[options.chain]?.filter(item => options.dateString >= item.from).map(item => item.vault.toLowerCase())
+        )
+        const isBlacklistedVault = (vault: string) => blacklistedVaultsForChain.has(vault.toLowerCase())
+
         // morpho meta vaults
-        const morphoVaults = await getMorphoVaults(options, vaults.morpho, vaults.morphoVaultOwners);
+        const morphoVaults = (await getMorphoVaults(options, vaults.morpho, vaults.morphoVaultOwners)).filter(vault => !isBlacklistedVault(vault));
 
         // morpho v2 vaults
-        const morphoVaultsV2 = await getMorphoVaultsV2(options, vaults.morphoVaultV2Owners);
+        const morphoVaultsV2 = (await getMorphoVaultsV2(options, vaults.morphoV2, vaults.morphoVaultV2Owners)).filter(vault => !isBlacklistedVault(vault));
 
-        const eulerVaults = await getEulerVaults(options, vaults.euler, vaults.eulerVaultOwners);
+        const eulerVaults = (await getEulerVaults(options, vaults.euler, vaults.eulerVaultOwners)).filter(vault => !isBlacklistedVault(vault));
 
         if (morphoVaults.length > 0) {
           await getMorphoVaultFee(options, { dailyFees, dailyRevenue, dailySupplySideRevenue }, morphoVaults, curatorConfig.breakdownFees)
@@ -373,6 +403,16 @@ export function getCuratorExport(curatorConfig: CuratorConfig): SimpleAdapter {
         }
         if (eulerVaults.length > 0) {
           await getEulerVaultFee(options, { dailyFees, dailyRevenue, dailySupplySideRevenue }, eulerVaults, curatorConfig.breakdownFees)
+        }
+
+        const blacklistedTokensForChain = blacklistedTokens[options.chain]?.filter(token => options.dateString >= token.from)?.map(token => token.token)
+
+        if (blacklistedTokensForChain && blacklistedTokensForChain.length > 0) {
+          for (const token of blacklistedTokensForChain) {
+            dailyFees.removeTokenBalance(token)
+            dailyRevenue.removeTokenBalance(token)
+            dailySupplySideRevenue.removeTokenBalance(token)
+          }
         }
 
         return {

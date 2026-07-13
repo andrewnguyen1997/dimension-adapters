@@ -50,10 +50,10 @@ const prefetch = async (_: any) => {
 
 }
 
-const fetch = async (timestamp: number, _: any, options: FetchOptions): Promise<FetchResult> => {
+const fetch = async (options: FetchOptions): Promise<FetchResult> => {
   const chain = options.chain;
-  if (chain == CHAIN.FANTOM && timestamp > 1744416000) return {} as FetchResult; // fantom delisted at 2025-04-12
-  const timestampToday = getTimestampAtStartOfDayUTC(timestamp)
+  if (chain == CHAIN.FANTOM && options.toTimestamp > 1744416000) return {} as FetchResult; // fantom delisted at 2025-04-12
+  const timestampToday = getTimestampAtStartOfDayUTC(options.toTimestamp)
   const response: IResponse = options.preFetchedResults || [];
   const dailyResultFees: any[] = response.daily;
 
@@ -66,7 +66,7 @@ const fetch = async (timestamp: number, _: any, options: FetchOptions): Promise<
   const dailyProtocolRevenue = options.createBalances();
   const dailyHoldersRevenue = options.createBalances();
   
-  dailyFees.addUSDValue(partnerRev || 0 + protocolRev || 0, 'Token Swap Fees');
+  dailyFees.addUSDValue((partnerRev || 0) + (protocolRev || 0), 'Token Swap Fees');
   dailySupplySideRevenue.addUSDValue(partnerRev || 0, 'Fees To Partners');
   
   const revenue = protocolRev || 0;

@@ -1,7 +1,6 @@
 import fetchURL from "../utils/fetchURL";
 import { FetchResult, SimpleAdapter } from "../adapters/types";
 import { CHAIN } from "../helpers/chains";
-import { getUniqStartOfTodayTimestamp } from "../helpers/getUniSubgraphVolume";
 
 const tickersURL = "https://api.bitflowapis.finance/ticker";
 const dlmmTickersURL = "https://bff.bitflowapis.finance/api/app/v1/tickers";
@@ -36,7 +35,10 @@ const getTokenPricesMap = async () => {
 
   const tokenPricesMap: { [tokenContract: string]: number } = {};
   for (const token of tokens) {
-    tokenPricesMap[token.tokenContract] = token.priceData.last_price;
+    if (!token.priceData)
+      tokenPricesMap[token.tokenContract] = 0;
+    else
+      tokenPricesMap[token.tokenContract] = token.priceData.last_price;
   }
   return tokenPricesMap;
 };
@@ -79,18 +81,13 @@ const fetch = async (): Promise<FetchResult> => {
     });
   }
 
-  return {
-    dailyVolume,
-  };
+  return { dailyVolume };
 };
 
 const adapter: SimpleAdapter = {
-  adapter: {
-    [CHAIN.STACKS]: {
-      fetch,
-      runAtCurrTime: true,
-    },
-  },
+  fetch,
+  chains: [CHAIN.STACKS],
+  runAtCurrTime: true,
 };
 
 export default adapter;

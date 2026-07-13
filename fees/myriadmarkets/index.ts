@@ -21,18 +21,29 @@ async function fetch({ createBalances, chain, api, getLogs }: FetchOptions) {
   const dailyRevenue = createBalances();
   const dailyNotionalVolume = createBalances();
 
-  const markets = await api.call({ abi: 'uint256[]:getMarkets', target: market });
-  const marketData = await api.multiCall({ target: market, abi: abi.getMarketAltData, calls: markets })
-  const marketFees = (await api.multiCall({ target: market, abi: abi.getMarketFees, calls: markets }))
-  const marketMapping: any = {}
-  markets.forEach((val:any, idx:any) => marketMapping[val] = {
-    token: marketData[idx].token,
-    fees: marketFees[idx]
-  })
+  const marketIndex = await api.call({ abi: 'uint256:marketIndex', target: market });
 
-  marketFees.forEach(i => {
-    i.buyFees = i.buyFees.map((j:any) => Number(j) / 1e18)
-  })
+  const marketMapping: any = {}
+  let fromIndex = 0;
+  const callSize = 20000;
+  do {
+    let toIndex = fromIndex + callSize;
+    if (toIndex > marketIndex) toIndex = marketIndex;
+    
+    const markets: number[] = [];
+    for (let i = fromIndex; i < toIndex; i++) markets.push(i);
+    
+    const marketData = await api.multiCall({ target: market, abi: abi.getMarketAltData, calls: markets })
+    const marketFees = (await api.multiCall({ target: market, abi: abi.getMarketFees, calls: markets }))
+    markets.forEach((val:any, idx:any) => marketMapping[val] = {
+      token: marketData[idx].token,
+      fees: marketFees[idx],
+    })
+    
+    fromIndex += callSize;
+    
+  } while (fromIndex < marketIndex)
+  
   const tradeLogs = await getLogs({ target: market, eventAbi: abi.MarketActionTx, });
 
   tradeLogs.forEach(({ action, marketId, value, shares }) => {
@@ -43,7 +54,9 @@ async function fetch({ createBalances, chain, api, getLogs }: FetchOptions) {
     const { fees, token } = marketMapping[marketId]
     const isBuy = action === 0
     const feeKey = isBuy ? 'buyFees' : 'sellFees'
-    const [fee, treasuryFee, distributorFee] = fees[feeKey]
+    const fee = Number(fees[feeKey][0]) / 1e18
+    const treasuryFee = Number(fees[feeKey][1]) / 1e18
+    const distributorFee = Number(fees[feeKey][2]) / 1e18
     const totalFee = fee + treasuryFee + distributorFee
 
     switch (action) {
@@ -54,7 +67,7 @@ async function fetch({ createBalances, chain, api, getLogs }: FetchOptions) {
         dailyFees.add(token, value * totalFee, isBuy ? 'BuyFee' : 'SellFee')
         dailySupplySideRevenue.add(token, value * distributorFee, 'DistributorFee')
         dailySupplySideRevenue.add(token, value * fee, 'LPFee')
-        dailyRevenue.add(token, value * fee, 'TreasuryFee')
+        dailyRevenue.add(token, value * treasuryFee, 'TreasuryFee')
         break;
     }
   });

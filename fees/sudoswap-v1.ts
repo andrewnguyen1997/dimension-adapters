@@ -4,7 +4,7 @@ import { queryIndexer } from "../helpers/indexer";
 
 const PROTOCOL_FEE_LABEL = "Protocol fees";
 
-const fetch = async (timestamp: number, _: any, options: FetchOptions): Promise<FetchResultFees> => {
+const fetch = async (options: FetchOptions): Promise<FetchResultFees> => {
   const dailyFees = options.createBalances();
   const eth_transfer_logs: any = await queryIndexer(`
       SELECT
@@ -16,8 +16,8 @@ const fetch = async (timestamp: number, _: any, options: FetchOptions): Promise<
         AND to_address = '\\xb16c1342E617A5B6E4b631EB114483FDB289c0A4'
         AND block_time BETWEEN llama_replace_date_range;
         `, options);
-  dailyFees.addGasToken(eth_transfer_logs[0].eth_value, PROTOCOL_FEE_LABEL);
-  return { dailyFees, timestamp, dailyRevenue: dailyFees, }
+  dailyFees.addGasToken(eth_transfer_logs[0]?.eth_value ?? 0, PROTOCOL_FEE_LABEL);
+  return { dailyFees, dailyRevenue: dailyFees, }
 }
 
 const methodology = {
@@ -35,12 +35,9 @@ const breakdownMethodology = {
 }
 
 const adapter: Adapter = {
-  adapter: {
-    [CHAIN.ETHEREUM]: {
-      fetch: fetch as any,
-      start: '2023-01-01'
-    },
-  },
+  fetch,
+  chains: [CHAIN.ETHEREUM],
+  start: '2023-01-01',
   methodology,
   breakdownMethodology
 };

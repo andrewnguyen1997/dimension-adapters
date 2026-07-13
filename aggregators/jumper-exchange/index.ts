@@ -1,6 +1,8 @@
 import { Chain } from "../../adapters/types";
 import { FetchOptions, SimpleAdapter } from "../../adapters/types";
 import { CHAIN } from "../../helpers/chains";
+import { getDefaultDexTokensBlacklisted } from "../../helpers/lists";
+import { formatAddress } from "../../utils/utils";
 
 type IContract = {
   [c: string | Chain]: string;
@@ -30,14 +32,20 @@ const contract: IContract = {
   [CHAIN.FUSE]: '0x1231deb6f5749ef6ce6943a275a1d3e7486f4eae',
   [CHAIN.CRONOS]: '0x1231deb6f5749ef6ce6943a275a1d3e7486f4eae',
   [CHAIN.GRAVITY]: '0x1231deb6f5749ef6ce6943a275a1d3e7486f4eae',
+  [CHAIN.ROBINHOOD]: '0xB477751B76CF82d00a686A1232f5fCD772414Af3',
 }
 
 const fetch = async ({ chain, getLogs, createBalances, }: FetchOptions) => {
   const dailyVolume = createBalances();
-  const data: any[] = await getLogs({
+  let data: any[] = await getLogs({
     target: contract[chain],
     eventAbi: 'event LiFiGenericSwapCompleted(bytes32 indexed transactionId, string integrator, string referrer, address receiver, address fromAssetId, address toAssetId, uint256 fromAmount, uint256 toAmount)'
   });
+
+  const blacklistedTokens = getDefaultDexTokensBlacklisted(chain)
+  if (blacklistedTokens.length > 0) {
+    data = data.filter(log => !blacklistedTokens.includes(formatAddress(log.fromAssetId)) && !blacklistedTokens.includes(formatAddress(log.toAssetId)))
+  }
 
   data.forEach((e: any) => {
     if (e.integrator === 'jumper.exchange' || e.integrator === 'jumper.exchange.gas') {
@@ -50,6 +58,7 @@ const fetch = async ({ chain, getLogs, createBalances, }: FetchOptions) => {
 
 const adapter: SimpleAdapter = {
   version: 2,
+  pullHourly: true,
   adapter: Object.keys(contract).reduce((acc, chain) => {
     return {
       ...acc,

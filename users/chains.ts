@@ -1,14 +1,15 @@
 import { queryAllium } from "../helpers/allium";
-import { httpGet } from "../utils/fetchURL";
-import axios from "axios";
-import { getEnv } from "../helpers/env";
+import fetchURL, { httpGet } from "../utils/fetchURL";
+import { ProtocolType } from "../adapters/types";
 import { CHAIN } from "../helpers/chains";
+import { createEvmChainUsersFetcher, EVM_CHAIN_METRIC_CONFIGS } from "../helpers/evmChainFees";
+import { blockscoutStatsExports } from "./utils/blockscoutStats";
+import { routescanStatsExports } from "./utils/routescanStats";
+import { subscanStatsExports } from "./utils/subscanStats";
 
 async function solanaUsers(start: number, end: number) {
     const queryId = await queryAllium(`select count(DISTINCT signer) as usercount, count(txn_id) as txcount from solana.raw.transactions where BLOCK_TIMESTAMP > TO_TIMESTAMP_NTZ(${start}) AND BLOCK_TIMESTAMP < TO_TIMESTAMP_NTZ(${end}) and success=true and is_voting=false`)
-    return {
-        queryId
-    }
+    return queryId
 }
 
 
@@ -27,26 +28,35 @@ function findClosestItem(results: any[], timestamp: number, getTimestamp: (x: an
 const toIso = (d: number) => new Date(d * 1e3).toISOString()
 function coinmetricsData(assetID: string) {
     return async (start: number, end: number) => {
-        const result = (await httpGet(`https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?page_size=10000&metrics=AdrActCnt&assets=${assetID}&start_time=${toIso(start - 24 * 3600)}&end_time=${toIso(end + 24 * 3600)}`)).data;
-        const closestDatapoint = findClosestItem(result, start, t => t.time)
-        if (!closestDatapoint) {
+        const activeUsersResult = (await httpGet(`https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?page_size=10000&metrics=AdrActCnt&assets=${assetID}&start_time=${toIso(start - 24 * 3600)}&end_time=${toIso(end + 24 * 3600)}`)).data;
+        const txcountResult = (await httpGet(`https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?page_size=10000&metrics=TxCnt&assets=${assetID}&start_time=${toIso(start - 24 * 3600)}&end_time=${toIso(end + 24 * 3600)}`)).data;
+
+        const activeUsersClosestDatapoint = findClosestItem(activeUsersResult, start, t => t.time)
+        const txcountClosestDatapoint = findClosestItem(txcountResult, start, t => t.time)
+
+        if (!activeUsersClosestDatapoint || !txcountClosestDatapoint) {
             throw new Error(`Failed to fetch CoinMetrics data for ${assetID} on ${end}, no data`);
         }
 
-        return parseFloat(closestDatapoint['AdrActCnt']);
+        const activeUsers = parseFloat(activeUsersClosestDatapoint['AdrActCnt']);
+        const txcount = parseFloat(txcountClosestDatapoint['TxCnt']);
+        
+        return [{
+            usercount: activeUsers,
+            txcount: txcount,
+        }];
     }
 }
 
-async function elrondUsers(start: number) {
-    const startDate = new Date(start * 1e3).toISOString().slice(0, 10)
-    const endDate = new Date((start + 86400) * 1e3).toISOString().slice(0, 10)
-    const { data } = await axios.get(`https://tools.multiversx.com/data-api-v2/accounts/count?startDate=${startDate}&endDate=${endDate}&resolution=day`, {
-        headers: {
-            "x-api-key": getEnv('MULTIVERSX_USERS_API_KEY')
-        }
-    })
-    const { value } = data.find((d: any) => d.date.slice(0, 10) === startDate)
-    return value
+async function elrondUsers(start: number, end: number) {
+    const usersResult = await fetchURL(`https://tools.multiversx.com/growth-api/explorer/analytics/active-users?range=all`)
+    const usersDataToday = usersResult.data.find((d: any) => d.timestamp >= start && d.timestamp < end)
+    const txcountResult = await fetchURL(`https://tools.multiversx.com/growth-api/explorer/analytics/token-transfers?range=all`)
+    const txcountDataToday = txcountResult.data.find((d: any) => d.timestamp >= start && d.timestamp < end)
+    return [{
+        usercount: usersDataToday.value,
+        txcount: txcountDataToday.value,
+    }];
 }
 
 function getAlliumUsersChain(chain: string) {
@@ -69,13 +79,14 @@ type ChainUserConfig = {
     name: string,
     id: string,
     chain: string,
+    protocolType?: ProtocolType,
+    start?: string,
     getUsers?: (start: number, end: number) => Promise<any>,
     getNewUsers?: (start: number, end: number) => Promise<any>,
 }
 
 const alliumChainMap: Record<string, string> = {
     arbitrum: CHAIN.ARBITRUM,
-    avalanche: CHAIN.AVAX,
     ethereum: CHAIN.ETHEREUM,
     optimism: CHAIN.OPTIMISM,
     polygon: CHAIN.POLYGON,
@@ -86,51 +97,118 @@ const alliumChainMap: Record<string, string> = {
     bsc: CHAIN.BSC,
     megaeth: CHAIN.MEGAETH,
     katana: CHAIN.KATANA,
+    abstract: CHAIN.ABSTRACT,
+    linea: CHAIN.LINEA,
+    manta_pacific: CHAIN.MANTA,
+    ronin: CHAIN.RONIN,
+    sonic: CHAIN.SONIC,
+    berachain: CHAIN.BERACHAIN,
+    monad: CHAIN.MONAD,
+    sei: CHAIN.SEI,
+    core: CHAIN.CORE,
+    tempo: CHAIN.TEMPO,
+    stable: CHAIN.STABLE,
 }
 
 const alliumExports = Object.keys(alliumChainMap).map(c => ({ name: c, id: c, getUsers: getAlliumUsersChain(c), getNewUsers: getAlliumNewUsersChain(c), chain: alliumChainMap[c], type: 'chain' }))
+
+const evmChainMetricConfigKeys = ["core", "merlin"] as const;
+const evmChainMetricExports = evmChainMetricConfigKeys.map((name) => {
+    const config = EVM_CHAIN_METRIC_CONFIGS[name];
+    return {
+        name,
+        chain: config.chain,
+        getUsers: createEvmChainUsersFetcher(config),
+        start: config.start,
+        id: name,
+    };
+});
 
 export default [
     {
         name: "solana",
         chain: CHAIN.SOLANA,
-        getUsers: solanaUsers
+        getUsers: solanaUsers,
+        id: "solana"
     },
     {
         name: "elrond",
         chain: CHAIN.ELROND,
-        getUsers: elrondUsers
+        getUsers: elrondUsers,
+        id: "elrond"
     },
     // https://coverage.coinmetrics.io/asset-metrics/AdrActCnt
     {
         name: "bitcoin",
         chain: CHAIN.BITCOIN,
-        getUsers: coinmetricsData("btc")
+        getUsers: coinmetricsData("btc"),
+        id: "bitcoin"
     },
     {
         name: "litecoin",
         chain: CHAIN.LITECOIN,
-        getUsers: coinmetricsData("ltc")
+        getUsers: coinmetricsData("ltc"),
+        id: "litecoin"
     },
     {
         name: "cardano",
         chain: CHAIN.CARDANO,
-        getUsers: coinmetricsData("ada")
+        getUsers: coinmetricsData("ada"),
+        id: "cardano"
     },
     {
         name: "algorand",
         chain: CHAIN.ALGORAND,
-        getUsers: coinmetricsData("algo")
+        getUsers: coinmetricsData("algo"),
+        id: "algorand"
+    },
+    {
+        name: "doge",
+        chain: CHAIN.DOGE,
+        getUsers: coinmetricsData("doge"),
+        id: "doge"
     },
     {
         name: "bch",
         chain: CHAIN.BITCOIN_CASH,
-        getUsers: coinmetricsData("bch")
+        getUsers: coinmetricsData("bch"),
+        id: "bch"
     },
     {
-        name: "bsv",
-        chain: CHAIN.BITCOIN_SV,
-        getUsers: coinmetricsData("bsv")
+        name: "dash",
+        chain: CHAIN.DASH,
+        getUsers: coinmetricsData("dash"),
+        id: "dash"
+    },
+    // {
+    //     name: "bsv",
+    //     chain: CHAIN.BITCOIN_SV,
+    //     getUsers: coinmetricsData("bsv"),
+    //     id: "bsv"
+    // },
+    {
+        name: "stellar",
+        chain: CHAIN.STELLAR,
+        getUsers: coinmetricsData("xlm"),
+        id: "stellar"
+    },
+    {
+        name: "xrpl",
+        chain: CHAIN.RIPPLE,
+        getUsers: coinmetricsData("xrp"),
+        id: "xrpl"
+    },
+    {
+        name: "icp",
+        chain: CHAIN.ICP,
+        getUsers: coinmetricsData("icp"),
+        id: "icp"
+    },
+    {
+        name: "zcash",
+        chain: CHAIN.ZEC,
+        getUsers: coinmetricsData("zec"),
+        id: "zcash"
     },
 ].map(chain => ({
     name: chain.name,
@@ -138,4 +216,4 @@ export default [
     type: "chain",
     chain: chain.chain,
     getUsers: (start: number, end: number) => chain.getUsers(start, end).then(u => typeof u === "object" ? u : ({ all: { users: u } })),
-} as ChainUserConfig)).concat(alliumExports)
+} as ChainUserConfig)).concat(alliumExports, blockscoutStatsExports, routescanStatsExports, subscanStatsExports, evmChainMetricExports)

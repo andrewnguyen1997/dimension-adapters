@@ -53,7 +53,8 @@ const factoriesByAdapterType: { [adapterType: string]: string[] } = {
     'uniV3',
     'uniSubgraph',
     'blockscout',
-    'hyperliquid:fees',
+    'routescan',
+    'hyperliquid:validatorFees',
     'hyperliquid',
     'symmio',
     'compoundV2',
@@ -65,6 +66,8 @@ const factoriesByAdapterType: { [adapterType: string]: string[] } = {
     'solLst',
     'joeLiquidityBook',
     'curve',
+    'subscan',
+    'polymarket:fees',
   ],
   'dexs': [
     'helpers/crypto-card',
@@ -75,13 +78,13 @@ const factoriesByAdapterType: { [adapterType: string]: string[] } = {
     'uniV2:fees',
     'uniV3:fees',
     'hyperliquid',
-    'hyperliquid:fees',
     'symmio',
     'orderly',
     'gmxV1',
     'polymarket',
     'saddle',
     'alliumSolanaDex',
+    'duneSolanaDex',
     'joeLiquidityBook',
     'curve',
   ],
@@ -101,7 +104,12 @@ const factoriesByAdapterType: { [adapterType: string]: string[] } = {
   ],
   'new-users': [
     'users/list:newUsers',
-  ]
+  ],
+  'liquidations': [
+    'aaveLiquidations',
+    'compoundV2:liquidations',
+    'gmxV1:liquidations',
+  ],
 };
 
 /**
@@ -142,6 +150,7 @@ export function getAdapterFromHelpers(
         }
       }
     } catch (error) {
+      // console.log(error)
       // Skip if factory doesn't exist or has errors
       continue;
     }
